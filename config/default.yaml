@@ -1,0 +1,45 @@
+noise:
+  pop_ups:
+    width: 960
+    height: 540
+    small_factor: 1
+    edge_thickness: 2
+    random_position: False
+    attack_position: bottom # bottom or top
+    button_string: OK
+    window_string: instruct click tgt
+    prefix_string: Install New Extenstion
+    suffix_string: to Continue
+    overlap: True
+
+  resolution:
+    scale: 2
+
+  marks:
+    number: 50
+    mark_size: 20
+    mark_type: star
+    color: red
+    overlap: True
+
+  subtitle:
+    subtitle_text: ['QQ MUSIC, LISTEN TO WHAT YOU WANT', '------CHOOSE a SONG to PLAY------']
+    position: bottom
+    font_size: 48
+    font_path: DejaVuSansMono-Bold.ttf
+    edge_color: black
+    color: white
+    padding: 40
+
+  multi_apps:
+    another_app: vscode
+
+  accidential_touch:
+    w/o_app: True
+    probability: 0.8
+
+  # app_minimization:
+  #   N/A
+
+  initialization_error:
+    max_error_step: 0
