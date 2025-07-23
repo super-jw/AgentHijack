@@ -38,8 +38,14 @@ noise:
     w/o_app: True
     probability: 0.8
 
-  # app_minimization:
-  #   N/A
+  app_minimization:
+    probability: 0.8
 
   initialization_error:
-    max_error_step: 0
+    max_error_step: 2
+  
+  network_error:
+    local_ip: 192.168.97.1
+
+  verification:
+    probability: 0.8

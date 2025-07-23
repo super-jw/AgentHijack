@@ -151,6 +151,31 @@ class DesktopEnv(gym.Env):
             logger.info("Environment setup complete.")
         observation = self._get_obs()
         return observation
+    
+    def reset_step1(self, task_config: Optional[Dict[str, Any]] = None, seed=None, options=None) -> Dict[str, Any]:
+        # Reset to certain task in OSWorld
+        logger.info("Resetting environment...")
+        logger.info("Switching task...")
+        logger.info("Setting counters...")
+        self._traj_no += 1
+        self._step_no = 0
+        self.action_history.clear()
+
+        logger.info("Reverting to snapshot to {}...".format(self.snapshot_name))
+        self._revert_to_snapshot()
+        logger.info("Starting emulator...")
+        self._start_emulator()
+        logger.info("Emulator started.")
+    
+    def reset_step2(self, task_config: Optional[Dict[str, Any]] = None, seed=None, options=None) -> Dict[str, Any]:
+        if task_config is not None:
+            self._set_task_info(task_config)
+            self.setup_controller.reset_cache_dir(self.cache_dir)
+            logger.info("Setting up environment...")
+            self.setup_controller.setup(self.config)
+            logger.info("Environment setup complete.")
+        observation = self._get_obs()
+        return observation
 
     def _get_obs(self):
         # We provide screenshot, accessibility_tree (optional), terminal (optional), and instruction.

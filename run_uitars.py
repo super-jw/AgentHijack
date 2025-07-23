@@ -114,7 +114,9 @@ def config() -> argparse.Namespace:
     )
 
     # noise config
-    parser.add_argument("--noise_type", type=str, default="marks", choices=['pop_ups', 
+    parser.add_argument("--noise_type", type=str, default="verification", choices=[
+                                                                                'clean',
+                                                                                'pop_ups', 
                                                                                 'resolution', 
                                                                                 'marks', 
                                                                                 'subtitle', 
@@ -122,7 +124,8 @@ def config() -> argparse.Namespace:
                                                                                 'accidential_touch',
                                                                                 'app_minimization',
                                                                                 'initialization_error',
-                                                                                'wallpaper'])
+                                                                                'network_error',
+                                                                                'verification'])
 
     parser.add_argument("--noise_config", type=str, default="config/default.yaml")
 

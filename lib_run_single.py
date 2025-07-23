@@ -14,11 +14,16 @@ logger = logging.getLogger("desktopenv.experiment")
 def run_single_example(agent, env, example, max_steps, instruction, args, example_result_dir, scores):
     runtime_logger = setup_logger(example, example_result_dir)
     agent.reset(runtime_logger)
-    if agent.noise_type != "initialization_error":
+    if agent.noise_type not in ["initialization_error", "network_error"]:
         env.reset(task_config=example)
     else:
-        instruction = perturb_agents(agent.noise_type, agent.noise_config, None, agent.platform, env, instruction, example)
-        logger.info(f"[New Instruction]: {instruction}")
+        if agent.noise_type == "initialization_error":
+            instruction = perturb_agents(agent.noise_type, agent.noise_config, None, agent.platform, env, instruction, example)
+            logger.info(f"[New Instruction]: {instruction}")
+        elif agent.noise_type == "network_error":
+            env.reset_step1(task_config=example)
+            perturb_agents(agent.noise_type, agent.noise_config, None, agent.platform, env, instruction, example)
+            env.reset_step2(task_config=example)
     time.sleep(10) # Wait for the environment to be ready
     obs = env._get_obs() # Get the initial observation
     done = False
@@ -28,7 +33,8 @@ def run_single_example(agent, env, example, max_steps, instruction, args, exampl
         response, actions = agent.predict(
             instruction,
             obs,
-            env=env
+            env=env,
+            example=example
         )
         if agent.noise_type != "":
             with open(os.path.join(example_result_dir, f"step_{step_idx + 1}_pre.png"),
@@ -54,7 +60,7 @@ def run_single_example(agent, env, example, max_steps, instruction, args, exampl
             logger.info("Reward: %.2f", reward)
             logger.info("Done: %s", done)
             # Save screenshot and trajectory information
-            if agent.noise_type == "":
+            if agent.noise_type == "clean":
                 with open(os.path.join(example_result_dir, f"step_{step_idx + 1}_{action_timestamp}.png"),
                         "wb") as _f:
                     _f.write(obs['screenshot'])

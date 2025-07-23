@@ -483,13 +483,21 @@ def agent_multi_apps(env, cfg, exist_app=[]):
     another_app = cfg['another_app']
     if another_app in exist_app:
         another_app = ''
-    if env.os_type == 'Ubuntu' or env.os_type == 'Windows' :
-        action_list = ["pyautogui.hotkey('win', 'left')", \
+        other_apps = ['vscode', 'chrome', 'gimp', 'libreoffice calc', 'libreoffice_impress', 'libreoffice_writer', 'vlc', 'thunderbird']
+        for other_app in other_apps:
+            if other_app not in exist_app:
+                another_app = other_app
+                break
+    if another_app!='' and (env.os_type == 'Ubuntu' or env.os_type == 'Windows'):
+        action_list = [
+                       "pyautogui.hotkey('win', 'left')", \
                        "pyautogui.press('win')", \
                        "pyautogui.typewrite('{}')".format(another_app), \
                        "pyautogui.press('enter')", \
-                       "pyautogui.hotkey('win', 'right')",]
-
+                       "pyautogui.hotkey('win', 'right')"
+                       ]
+    else:
+        action_list = [None]
     for action in action_list:
         obs, reward, done, info = env.step(action)
         time.sleep(0.5)
@@ -519,9 +527,13 @@ def agent_accidential_touch(tag_pos, env, cfg):
     current_observation = Image.open(BytesIO(obs["screenshot"]))
     return current_observation 
 
-def agent_app_minimization(env):
-    if env.os_type == 'Ubuntu' or env.os_type == 'Windows' :
-        action = "pyautogui.hotkey('win', 'd')"
+def agent_app_minimization(env, cfg):
+    probability = cfg['probability']
+    if random.random() <= probability:
+        if env.os_type == 'Ubuntu' or env.os_type == 'Windows' :
+            action = "pyautogui.hotkey('win', 'd')"
+    else:
+        action = None
     obs, reward, done, info = env.step(action)
     current_observation = Image.open(BytesIO(obs["screenshot"]))
     return current_observation
@@ -544,6 +556,56 @@ def agent_initialization_error(env, instruction, task_config, cfg):
         return current_observation, new_intruction
     return current_observation, instruction
 
+def agent_network_error(env, cfg):
+    if env.os_type == 'Ubuntu' or env.os_type == 'Windows':
+        action_list = [
+                       "pyautogui.press('win')", \
+                       "pyautogui.typewrite('terminal')", \
+                       "pyautogui.press('enter')", \
+                       "pyautogui.typewrite('sudo iptables -A INPUT -i lo -j ACCEPT')", \
+                       "pyautogui.press('enter')", \
+                       "pyautogui.typewrite('password')", \
+                       "pyautogui.press('enter')", \
+                       "pyautogui.typewrite('sudo iptables -A OUTPUT -o lo -j ACCEPT')", \
+                       "pyautogui.press('enter')", \
+                       # 允许主机与虚拟机之间的通信（假设主机IP为192.168.97.1）
+                       f"pyautogui.typewrite('sudo iptables -A INPUT -s {cfg['local_ip']} -j ACCEPT')", \
+                       "pyautogui.press('enter')", \
+                       f"pyautogui.typewrite('sudo iptables -A OUTPUT -d {cfg['local_ip']} -j ACCEPT')", \
+                       "pyautogui.press('enter')", \
+
+                       # 允许已建立的连接和相关连接继续通信
+                       "pyautogui.typewrite('sudo iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT')", \
+                       "pyautogui.press('enter')", \
+                       "pyautogui.typewrite('sudo iptables -A OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT')", \
+                       "pyautogui.press('enter')", \
+                       # 阻止所有其他外部访问（注意：此规则应放在最后）
+                       "pyautogui.typewrite('sudo iptables -A OUTPUT -o ens160 -j DROP')", \
+                       "pyautogui.press('enter')", \
+                       "pyautogui.typewrite('sudo iptables -A INPUT -i ens160 -j DROP')", \
+                       "pyautogui.press('enter')"
+                       # delete all network config
+                       # sudo iptables -F OUTPUT
+                       ]
+    for action in action_list:
+        obs, reward, done, info = env.step(action)
+        time.sleep(0.5)
+    current_observation = Image.open(BytesIO(obs["screenshot"]))
+    return current_observation
+
+def agent_verification(env, cfg):
+    probability = cfg['probability']
+    if random.random() <= probability:
+        if env.os_type == 'Ubuntu' or env.os_type == 'Windows' :
+            action = "pyautogui.hotkey('win', 'l')"
+            obs, reward, done, info = env.step(action)
+            obs, reward, done, info = env.step("pyautogui.click(100, 100)")
+    else:
+        action = None
+        obs, reward, done, info = env.step(action)
+    current_observation = Image.open(BytesIO(obs["screenshot"]))
+    return current_observation
+
 def agent_wallpaper(env):
     config = [
         {
@@ -563,7 +625,7 @@ def agent_wallpaper(env):
     current_observation = Image.open(BytesIO(obs["screenshot"]))
     return current_observation 
 
-def perturb_agents(noise_type, noise_config, observation, platform, env, instruction='', task_config=''):
+def perturb_agents(noise_type, noise_config, observation, platform, env, instruction='', task_config='', example=''):
     with open(file=noise_config) as f:
         cfg = yaml.load(f, Loader=yaml.FullLoader)['noise']
         if noise_type in cfg:
@@ -571,36 +633,42 @@ def perturb_agents(noise_type, noise_config, observation, platform, env, instruc
     if noise_type == 'pop_ups':
         current_boundingbox, nodes, _, linearized_accessibility_tree = tag_screenshot(observation["screenshot"], observation["accessibility_tree"], platform)
         after_perturb = agent_pop_ups(current_boundingbox, nodes, observation['screenshot'], cfg)
-        after_perturb.save('test.png')
+        # after_perturb.save('test.png')
     elif noise_type == 'resolution':
         current_observation = Image.open(BytesIO(observation["screenshot"]))
         after_perturb = agent_resolution(current_observation, cfg)
-        after_perturb.save('test.png')
+        # after_perturb.save('test.png')
     elif noise_type == 'marks':
         current_boundingbox, nodes, _, linearized_accessibility_tree = tag_screenshot(observation["screenshot"], observation["accessibility_tree"], platform)
         after_perturb = agent_marks(current_boundingbox, nodes, observation['screenshot'], cfg)
-        after_perturb.save('test.png')
+        # after_perturb.save('test.png')
     elif noise_type == 'subtitle':
         current_observation = Image.open(BytesIO(observation["screenshot"]))
         after_perturb = agent_subtitle(current_observation, cfg)
-        after_perturb.save('test.png')
+        # after_perturb.save('test.png')
     elif noise_type == 'multi_apps':
-        after_perturb = agent_multi_apps(env, cfg)
-        after_perturb.save('test.png')
+        after_perturb = agent_multi_apps(env, cfg, exist_app=example['related_apps'])
+        # after_perturb.save('test.png')
     elif noise_type == 'accidential_touch':
         current_boundingbox, nodes, _, linearized_accessibility_tree = tag_screenshot(observation["screenshot"], observation["accessibility_tree"], platform)
         after_perturb = agent_accidential_touch(current_boundingbox, env, cfg)
-        after_perturb.save('test.png')
+        # after_perturb.save('test.png')
     elif noise_type == 'app_minimization':
-        after_perturb = agent_app_minimization(env)
-        after_perturb.save('test.png')
+        after_perturb = agent_app_minimization(env, cfg)
+        # after_perturb.save('test.png')
     elif noise_type == 'initialization_error':
         after_perturb, new_instruction = agent_initialization_error(env, instruction, task_config, cfg)
-        after_perturb.save('test.png')
+        # after_perturb.save('test.png')
         return new_instruction
+    elif noise_type == 'network_error':
+        after_perturb = agent_network_error(env, cfg)
+        # after_perturb.save('test.png')
+    elif noise_type == 'verification':
+        after_perturb = agent_verification(env, cfg)
+        # after_perturb.save('test.png')
     elif noise_type == 'wallpaper':
         after_perturb = agent_wallpaper(env)
-        after_perturb.save('test.png')
+        # after_perturb.save('test.png')
     
     image_bytes_io = BytesIO()
     after_perturb.save(image_bytes_io, format='PNG')

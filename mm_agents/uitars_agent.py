@@ -649,7 +649,7 @@ class UITARSAgent:
         self.cur_callusr_count = 0
 
     def predict(
-        self, instruction: str, obs: Dict, last_action_after_obs: Dict = None, env=None
+        self, instruction: str, obs: Dict, last_action_after_obs: Dict = None, env=None, example=None,
     ) -> List:
         """
         Predict the next action(s) based on the current observation.
@@ -693,8 +693,9 @@ class UITARSAgent:
         if self.observation_type in ["screenshot", "screenshot_a11y_tree"]:
             current_observation = obs["screenshot"]
             if not is_single_color_image(current_observation):
-                if self.noise_type != "" and self.noise_type != "initialization_error":
-                    current_observation = perturb_agents(self.noise_type, self.noise_config, obs, self.platform, env)
+                if self.noise_type not in ["clean", "initialization_error", "network_error"]:
+                    if self.noise_type != "multi_apps" or (self.noise_type == "multi_apps" and len(self.history_images) == 0):
+                        current_observation = perturb_agents(self.noise_type, self.noise_config, obs, self.platform, env, example=example)
             else:
                 logger.info(f"Perturbation analysis 0: Skip perturb this round! The OS might be sleeping...")
             
