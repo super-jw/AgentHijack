@@ -90,8 +90,16 @@ def get_result(action_space, use_model, observation_type, corruption_type, resul
         return None
     else:
         print("Runned:", len(all_result), "Current Success Rate:", sum(all_result) / len(all_result) * 100, "%")
-        return all_result
+        return all_result_for_analysis
 
 
 if __name__ == '__main__':
-    get_result("pyautogui", "ui-tars", "screenshot", 'verification', "./results")
+    corruption = 'network_error'
+    clean_result = get_result("pyautogui", "ui-tars-ours", "screenshot", corruption, "./results")
+    perturb_result = get_result("pyautogui", "ui-tars", "screenshot", corruption, "./results")
+    for domain in clean_result:
+        for id in clean_result[domain]:
+            if domain in perturb_result.keys():
+                if id in perturb_result[domain].keys():
+                    if clean_result[domain][id] > 0 and perturb_result[domain][id] == 0:
+                        print(f"{domain}:{id}")

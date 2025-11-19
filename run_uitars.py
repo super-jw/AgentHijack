@@ -92,11 +92,11 @@ def config() -> argparse.Namespace:
 
     # lm config
     parser.add_argument("--model", type=str, default="ui-tars")
-    parser.add_argument("--model_type", type=str, default="qwen2vl")
-    parser.add_argument("--infer_mode", type=str, default="qwen2vl_user")
-    parser.add_argument("--prompt_style", type=str, default="qwen2vl_user")
+    parser.add_argument("--model_type", type=str, default="qwen25vl")
+    parser.add_argument("--infer_mode", type=str, default="qwen25vl_normal")
+    parser.add_argument("--prompt_style", type=str, default="qwen25vl_normal")
     parser.add_argument("--input_swap", action="store_true", help="Use copy and paste to type content")
-    parser.add_argument("--language", type=str, default="Chinese")
+    parser.add_argument("--language", type=str, default="English")
     parser.add_argument("--max_pixels", type=float, default=16384*28*28)
     parser.add_argument("--min_pixels", type=float, default=100*28*28)
     parser.add_argument("--temperature", type=float, default=0.6)
@@ -114,7 +114,7 @@ def config() -> argparse.Namespace:
     )
 
     # noise config
-    parser.add_argument("--noise_type", type=str, default="verification", choices=[
+    parser.add_argument("--noise_type", type=str, default="network_error", choices=[
                                                                                 'clean',
                                                                                 'pop_ups', 
                                                                                 'resolution', 

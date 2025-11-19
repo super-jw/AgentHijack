@@ -14,16 +14,15 @@ logger = logging.getLogger("desktopenv.experiment")
 def run_single_example(agent, env, example, max_steps, instruction, args, example_result_dir, scores):
     runtime_logger = setup_logger(example, example_result_dir)
     agent.reset(runtime_logger)
-    if agent.noise_type not in ["initialization_error", "network_error"]:
+    if agent.noise_type not in ["verification", "network_error"]:
         env.reset(task_config=example)
-    else:
-        if agent.noise_type == "initialization_error":
-            instruction = perturb_agents(agent.noise_type, agent.noise_config, None, agent.platform, env, instruction, example)
-            logger.info(f"[New Instruction]: {instruction}")
-        elif agent.noise_type == "network_error":
-            env.reset_step1(task_config=example)
-            perturb_agents(agent.noise_type, agent.noise_config, None, agent.platform, env, instruction, example)
-            env.reset_step2(task_config=example)
+    elif agent.noise_type == "network_error":
+        env.reset_step1(task_config=example)
+        perturb_agents(agent.noise_type, agent.noise_config, None, agent.platform, env, -1, instruction, example)
+        env.reset_step2(task_config=example)
+    elif agent.noise_type == "verification":
+        env.reset(task_config=example)
+        perturb_agents(agent.noise_type, agent.noise_config, None, agent.platform, env, -1, instruction, example)
     time.sleep(10) # Wait for the environment to be ready
     obs = env._get_obs() # Get the initial observation
     done = False
@@ -31,16 +30,17 @@ def run_single_example(agent, env, example, max_steps, instruction, args, exampl
     env.controller.start_recording()
     while not done and step_idx < max_steps:
         response, actions = agent.predict(
+            step_idx,
             instruction,
             obs,
             env=env,
             example=example
         )
-        if agent.noise_type != "":
-            with open(os.path.join(example_result_dir, f"step_{step_idx + 1}_pre.png"),
-                        "wb") as _f:
-                    # screenshot before action
-                    _f.write(obs['screenshot'])
+        if agent.noise_type != "clean":
+            # with open(os.path.join(example_result_dir, f"step_{step_idx + 1}_pre.png"),
+            #             "wb") as _f:
+            #         # screenshot before action
+            #         _f.write(obs['screenshot'])
             with open(os.path.join(example_result_dir, f"step_{step_idx + 1}_agent_observe.png"),
                         "wb") as _f:
                     # screenshot before action, transform from byte string
@@ -68,6 +68,7 @@ def run_single_example(agent, env, example, max_steps, instruction, args, exampl
                 f.write(json.dumps({
                     "step_num": step_idx + 1,
                     "action_timestamp": action_timestamp,
+                    "summary": agent.history_summary[-1] if len(agent.history_summary)>0 else "None",
                     "action": response+action,
                     "reward": reward,
                     "done": done,

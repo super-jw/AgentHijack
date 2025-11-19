@@ -1195,40 +1195,28 @@ AGUVIS_GROUNDING_APPEND_PROMPT = """<|recipient|>os
 pyautogui.{function_name}"""
 
 UITARS_ACTION_SPACE = """
-click(start_box='<|box_start|>(x1,y1)<|box_end|>')
-left_double(start_box='<|box_start|>(x1,y1)<|box_end|>')
-right_single(start_box='<|box_start|>(x1,y1)<|box_end|>')
-drag(start_box='<|box_start|>(x1,y1)<|box_end|>', end_box='<|box_start|>(x3,y3)<|box_end|>')
+click(start_box='[x1, y1, x2, y2]')
+left_double(start_box='[x1, y1, x2, y2]')
+right_single(start_box='[x1, y1, x2, y2]')
+drag(start_box='[x1, y1, x2, y2]', end_box='[x3, y3, x4, y4]')
 hotkey(key='')
 type(content='') #If you want to submit your input, use "\\n" at the end of `content`.
-scroll(start_box='<|box_start|>(x1,y1)<|box_end|>', direction='down or up or right or left')
+scroll(start_box='[x1, y1, x2, y2]', direction='down or up or right or left')
 wait() #Sleep for 5s and take a screenshot to check for any changes.
 finished()
 """
 
 UITARS_CALL_USR_ACTION_SPACE = """
-click(start_box='<|box_start|>(x1,y1)<|box_end|>')
-left_double(start_box='<|box_start|>(x1,y1)<|box_end|>')
-right_single(start_box='<|box_start|>(x1,y1)<|box_end|>')
-drag(start_box='<|box_start|>(x1,y1)<|box_end|>', end_box='<|box_start|>(x3,y3)<|box_end|>')
+click(start_box='[x1, y1, x2, y2]')
+left_double(start_box='[x1, y1, x2, y2]')
+right_single(start_box='[x1, y1, x2, y2]')
+drag(start_box='[x1, y1, x2, y2]', end_box='[x3, y3, x4, y4]')
 hotkey(key='')
 type(content='') #If you want to submit your input, use "\\n" at the end of `content`.
-scroll(start_box='<|box_start|>(x1,y1)<|box_end|>', direction='down or up or right or left')
+scroll(start_box='[x1, y1, x2, y2]', direction='down or up or right or left')
 wait() #Sleep for 5s and take a screenshot to check for any changes.
 finished()
 call_user() # Submit the task and call the user when the task is unsolvable, or when you need the user's help.
-"""
-
-UITARS_NORMAL_ACTION_SPACE = """
-click(start_box='<|box_start|>(x1,y1)<|box_end|>')
-left_double(start_box='<|box_start|>(x1,y1)<|box_end|>')
-right_single(start_box='<|box_start|>(x1,y1)<|box_end|>')
-drag(start_box='<|box_start|>(x1,y1)<|box_end|>', end_box='<|box_start|>(x3,y3)<|box_end|>')
-hotkey(key='')
-type(content='') #If you want to submit your input, use "\\n" at the end of `content`.
-scroll(start_box='<|box_start|>(x1,y1)<|box_end|>', direction='down or up or right or left')
-wait() #Sleep for 5s and take a screenshot to check for any changes.
-finished(content='xxx') # Use escape characters \\', \\", and \\n in content part to ensure we can parse the content in normal python string format.
 """
 
 UITARS_USR_PROMPT_NOTHOUGHT = """You are a GUI agent. You are given a task and your action history, with screenshots. You need to perform the next action to complete the task. 
@@ -1237,13 +1225,13 @@ UITARS_USR_PROMPT_NOTHOUGHT = """You are a GUI agent. You are given a task and y
 Action: ...
 ```
 ## Action Space
-click(start_box='<|box_start|>(x1,y1)<|box_end|>')
-left_double(start_box='<|box_start|>(x1,y1)<|box_end|>')
-right_single(start_box='<|box_start|>(x1,y1)<|box_end|>')
-drag(start_box='<|box_start|>(x1,y1)<|box_end|>', end_box='<|box_start|>(x3,y3)<|box_end|>')
+click(start_box='[x1, y1, x2, y2]')
+left_double(start_box='[x1, y1, x2, y2]')
+right_single(start_box='[x1, y1, x2, y2]')
+drag(start_box='[x1, y1, x2, y2]', end_box='[x3, y3, x4, y4]')
 hotkey(key='')
 type(content='') #If you want to submit your input, use "\\n" at the end of `content`.
-scroll(start_box='<|box_start|>(x1,y1)<|box_end|>', direction='down or up or right or left')
+scroll(start_box='[x1, y1, x2, y2]', direction='down or up or right or left')
 wait() #Sleep for 5s and take a screenshot to check for any changes.
 finished()
 call_user() # Submit the task and call the user when the task is unsolvable, or when you need the user's help.
@@ -1251,7 +1239,19 @@ call_user() # Submit the task and call the user when the task is unsolvable, or 
 {instruction}
 """
 
-UITARS_USR_PROMPT_THOUGHT = """You are a GUI agent. You are given a task and your action history, with screenshots. You need to perform the next action to complete the task. 
+
+UITARS_NORMAL_ACTION_SPACE = """click(start_box='<|box_start|>(x1,y1)<|box_end|>')
+left_double(start_box='<|box_start|>(x1,y1)<|box_end|>')
+right_single(start_box='<|box_start|>(x1,y1)<|box_end|>')
+drag(start_box='<|box_start|>(x1,y1)<|box_end|>', end_box='<|box_start|>(x3,y3)<|box_end|>')
+hotkey(key='')
+type(content='xxx') # Use escape characters \\', \\\", and \\n in content part to ensure we can parse the content in normal python string format. If you want to submit your input, use \\n at the end of content. 
+scroll(start_box='<|box_start|>(x1,y1)<|box_end|>', direction='down or up or right or left')
+wait() #Sleep for 5s and take a screenshot to check for any changes.
+finished(content='xxx') # Use escape characters \\', \\", and \\n in content part to ensure we can parse the content in normal python string format.
+"""
+
+UITARS_USR_PROMPT_THOUGHT = """You are a GUI agent. You are given a task and your action history, with screenshots. You need to perform the next action to complete the task.
 
 ## Output Format
 ```
@@ -1260,6 +1260,7 @@ Action: ...
 ```
 
 ## Action Space
+
 {action_space}
 
 ## Note
@@ -1269,3 +1270,64 @@ Action: ...
 ## User Instruction
 {instruction}
 """
+
+UITARS_USR_PROMPT_THOUGHT_2 = """You are a GUI agent. You are given a task and your action history, with screenshots. You need to perform the next action to complete the task.
+
+## Output Format
+```
+Thought: ...
+Action: ...
+```
+
+## Action Space
+
+{action_space}
+
+## Note
+- Use {language} in `Thought` part.
+- Write a small plan and finally summarize your next action (with its target element) in one sentence in `Thought` part.
+
+## User Instruction
+{instruction}
+"""
+
+UITARS_SUMMARIZE_PROMPT = "You are an action summarizer tasked with evaluating a GUI Agent's performance. The agent receives a global instruction and generates actions based on screenshots to complete the objective.\n\nWhen given a before screenshot, an after screenshot, the action that was executed between them, provide a single concise description summarizing exactly what changed. Focus only on the most significant visual difference caused by the action. You should output a description of both the operation and the caused change. For example, \"The user click xxx, and the page xxx. or The user use hotkey xxx to xxx\"\n\nGlobal instruction: \n{instruction}\n\nExecuted action: \n{response}\n\nPlease analyze the before and after screenshots to describe what changed:"
+
+UITARS_REMINDER_PROMPT = """You are a reminder responsible for alerting users of risks that might be overlooked during the task initialization process. The following are the key risks that may be overlooked:
+
+1. System Password:
+If the system is currently in a login state, remind the user:
+
+"Please log in by entering the password first."
+
+2. Network Disconnection Risk:
+If you observe the internet is not available or the site can't be reached, please notify the user immediately
+
+"The network is unavailable. Please help restore normal network access first."
+
+Given current screenshot, if you determine the user needs to be informed of the above information, output the corresponding reminder. If you haven't observed the above risk on the current screenshot, simply state "None".
+
+## Output Format
+```
+Thought: ...
+Reminder: ...
+```
+"""
+# UITARS_USR_PROMPT_THOUGHT = """You are a GUI agent. You are given a task and your action history, with screenshots. You need to perform the next action to complete the task. 
+
+# ## Output Format
+# ```
+# Thought: ...
+# Action: ...
+# ```
+
+# ## Action Space
+# {action_space}
+
+# ## Note
+# - Use {language} in `Thought` part.
+# - Write a small plan and finally summarize your next action (with its target element) in one sentence in `Thought` part.
+
+# ## User Instruction
+# {instruction}
+# """

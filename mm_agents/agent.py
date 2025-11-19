@@ -287,7 +287,7 @@ class PromptAgent:
         else:
             raise ValueError("Invalid experiment type: " + observation_type)
 
-    def predict(self, instruction: str, obs: Dict, env) -> List:
+    def predict(self, instruction: str, obs: Dict, env, example) -> List:
         """
         Predict the next action(s) based on the current observation.
         """
@@ -418,7 +418,7 @@ class PromptAgent:
             current_observation = obs["screenshot"]
             if not is_single_color_image(current_observation):
                 if self.noise_type != "" and self.noise_type != "initialization_error":
-                    current_observation = perturb_agents(self.noise_type, self.noise_config, obs, self.platform, env)
+                    current_observation = perturb_agents(self.noise_type, self.noise_config, obs, self.platform, env, example=example)
             else:
                 logger.info(f"Perturbation analysis 0: Skip perturb this round! The OS might be sleeping...")
             
@@ -1005,7 +1005,7 @@ class PromptAgent:
             from openai import OpenAI
 
             Client = OpenAI(
-            base_url="http://8.130.84.63:55382/v1",
+            base_url="http://10.184.17.224:8088/v1",
             api_key="empty",
             )
             while True:

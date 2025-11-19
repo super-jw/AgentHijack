@@ -13,7 +13,7 @@ from tqdm import tqdm
 
 import lib_run_single
 from desktop_env.desktop_env import DesktopEnv
-from mm_agents.agent import PromptAgent
+from mm_agents.multistep_uitars_agent import MULTISTEP_UITARSAgent
 
 # import wandb
 
@@ -81,20 +81,30 @@ def config() -> argparse.Namespace:
     )
     parser.add_argument("--screen_width", type=int, default=1920)
     parser.add_argument("--screen_height", type=int, default=1080)
-    parser.add_argument("--sleep_after_execution", type=float, default=0.0)
+    parser.add_argument("--sleep_after_execution", type=float, default=2.0)
     parser.add_argument("--max_steps", type=int, default=15)
 
     # agent config
-    parser.add_argument("--max_trajectory_length", type=int, default=3)
+    parser.add_argument("--max_trajectory_length", type=int, default=15)
     parser.add_argument(
         "--test_config_base_dir", type=str, default="evaluation_examples"
     )
 
     # lm config
-    parser.add_argument("--model", type=str, default="qwen-vl")
-    parser.add_argument("--temperature", type=float, default=1.0)
+    parser.add_argument("--model", type=str, default="ui-tars")
+    parser.add_argument("--model_type", type=str, default="qwen25vl")
+    parser.add_argument("--infer_mode", type=str, default="qwen25vl_normal")
+    parser.add_argument("--prompt_style", type=str, default="qwen25vl_normal")
+    parser.add_argument("--input_swap", action="store_true", help="Use copy and paste to type content")
+    parser.add_argument("--language", type=str, default="Chinese")
+    parser.add_argument("--max_pixels", type=float, default=16384*28*28)
+    parser.add_argument("--min_pixels", type=float, default=100*28*28)
+    parser.add_argument("--temperature", type=float, default=0.6)
     parser.add_argument("--top_p", type=float, default=0.9)
-    parser.add_argument("--max_tokens", type=int, default=1500)
+    parser.add_argument("--top_k", type=int, default=-1)
+    parser.add_argument("--history_n", type=int, default=5)
+    parser.add_argument("--callusr_tolerance", type=int, default=3)
+    parser.add_argument("--max_tokens", type=int, default=4096)
     parser.add_argument("--stop_token", type=str, default=None)
 
     # example config
@@ -104,7 +114,7 @@ def config() -> argparse.Namespace:
     )
 
     # noise config
-    parser.add_argument("--noise_type", type=str, default="resolution", choices=[
+    parser.add_argument("--noise_type", type=str, default="network_error", choices=[
                                                                                 'clean',
                                                                                 'pop_ups', 
                                                                                 'resolution', 
@@ -118,6 +128,7 @@ def config() -> argparse.Namespace:
                                                                                 'verification'])
 
     parser.add_argument("--noise_config", type=str, default="config/default.yaml")
+
     # logging related
     parser.add_argument("--result_dir", type=str, default="./results")
     args = parser.parse_args()
@@ -143,21 +154,29 @@ def test(args: argparse.Namespace, test_all_meta: dict) -> None:
         "max_steps": args.max_steps,
         "max_trajectory_length": args.max_trajectory_length,
         "model": args.model,
+        "model_type": args.model_type,
+        "infer_mode": args.infer_mode,
+        "prompt_style": args.prompt_style,
+        "input_swap": args.input_swap,
+        "language": args.language,
+        "history_n": args.history_n,
+        "max_pixels": args.max_pixels,
+        "min_pixels": args.min_pixels,
+        "callusr_tolerance": args.callusr_tolerance,
         "temperature": args.temperature,
         "top_p": args.top_p,
+        "top_k": args.top_k,
         "max_tokens": args.max_tokens,
         "stop_token": args.stop_token,
         "result_dir": args.result_dir,
     }
 
-    agent = PromptAgent(
+    agent = MULTISTEP_UITARSAgent(
         model=args.model,
-        max_tokens=args.max_tokens,
-        top_p=args.top_p,
-        temperature=args.temperature,
         action_space=args.action_space,
         observation_type=args.observation_type,
         max_trajectory_length=args.max_trajectory_length,
+        model_type=args.model_type,
         noise_type=args.noise_type,
         noise_config = args.noise_config
     )
@@ -305,12 +324,10 @@ def get_result(action_space, use_model, observation_type, corruption_type, resul
         print("Current Success Rate:", sum(all_result) / len(all_result) * 100, "%")
         return all_result
 
+
 if __name__ == "__main__":
     ####### The complete version of the list of examples #######
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
-    os.environ['OPENAI_API_KEY'] = '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'
-    os.environ['GENAI_API_KEY'] = 'AIzaSyCvO6hZBStR2_DDGrNC5UQIDcUG-AijDMY'
-    os.environ['DASHSCOPE_API_KEY'] = 'sk-f719629e3d9d4efeb27f060bc4735dda'
     args = config()
 
     with open(args.test_all_meta_path, "r", encoding="utf-8") as f:

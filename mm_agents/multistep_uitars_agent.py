@@ -6,7 +6,7 @@ import re
 import xml.etree.ElementTree as ET
 from io import BytesIO
 from typing import Dict, List
-
+import yaml
 import backoff
 import numpy as np
 from PIL import Image
@@ -28,8 +28,10 @@ from mm_agents.prompts import (
     UITARS_ACTION_SPACE,
     UITARS_CALL_USR_ACTION_SPACE,
     UITARS_USR_PROMPT_NOTHOUGHT,
-    UITARS_USR_PROMPT_THOUGHT,
-    UITARS_NORMAL_ACTION_SPACE
+    UITARS_USR_PROMPT_THOUGHT_2,
+    UITARS_NORMAL_ACTION_SPACE,
+    UITARS_SUMMARIZE_PROMPT,
+    UITARS_REMINDER_PROMPT
 )
 
 
@@ -559,13 +561,14 @@ def trim_accessibility_tree(linearized_accessibility_tree, max_tokens):
     #     linearized_accessibility_tree += "[...]\n"
     return linearized_accessibility_tree
 
-class UITARSAgent:
+class MULTISTEP_UITARSAgent:
     def __init__(
         self,
         model='ui-tars',
         platform="ubuntu",
         action_space="pyautogui",
         observation_type="screenshot",
+        base_url="http://10.184.17.224:9000/v1",
         # observation_type can be in ["screenshot", "a11y_tree", "screenshot_a11y_tree", "som"]
         max_trajectory_length=50,
         a11y_tree_max_tokens=10000,
@@ -601,9 +604,9 @@ class UITARSAgent:
         #     api_key="7077090a-5d29-4f1f-b904-fa11d5c5a349",
         # ) # should replace with your UI-TARS server api
         self.vlm = OpenAI(
-            base_url="http://10.184.17.224:9000/v1",
+            base_url=base_url,
             api_key="empty",
-        ) # should replace with your UI-TARS server api
+        )  # should replace with your UI-TARS server api
         self.temperature = self.runtime_conf["temperature"]
         self.top_k = self.runtime_conf["top_k"]
         self.top_p = self.runtime_conf["top_p"]
@@ -633,14 +636,15 @@ class UITARSAgent:
         elif self.infer_mode == "qwen25vl_normal":
             self.prompt_action_space = UITARS_NORMAL_ACTION_SPACE
     
-        self.prompt_template = UITARS_USR_PROMPT_THOUGHT
+        self.prompt_template = UITARS_USR_PROMPT_THOUGHT_2
         
         if self.prompt_style == "qwen2vl_user" or self.prompt_style == "qwen25vl_normal":
-            self.prompt_template = UITARS_USR_PROMPT_THOUGHT
+            self.prompt_template = UITARS_USR_PROMPT_THOUGHT_2
 
         elif self.prompt_style == "qwen2vl_no_thought":
             self.prompt_template = UITARS_USR_PROMPT_NOTHOUGHT
-
+        self.summary_prompt = UITARS_SUMMARIZE_PROMPT
+        self.remind_prompt = UITARS_REMINDER_PROMPT
         
         if "history_n" in self.runtime_conf:
             self.history_n = self.runtime_conf["history_n"]
@@ -693,15 +697,74 @@ class UITARSAgent:
 
         if self.observation_type in ["screenshot", "screenshot_a11y_tree"]:
             current_observation = obs["screenshot"]
+            # Initial state confirmation
+            if current_step == 0:
+                # reminder message
+                messages = [
+                    {"role": "user", "content": [
+                        {"type": "text", "text": self.remind_prompt},
+                        {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{pil_to_base64(Image.open(BytesIO(current_observation)))}"}},
+                    ]},
+                ]
+                remind_result = self.vlm.chat.completions.create(model=self.model, messages=messages, frequency_penalty=1, max_tokens=self.max_tokens, temperature=self.temperature, top_p=self.top_p)
+                remind_result = remind_result.choices[0].message.content.strip()
+                # avoid instruction follow error
+                remind_result = remind_result.split('Action')[0].split('Reminder:')[1].split('Thought')[0]
+                # simulate human intervention
+                if 'None' not in remind_result:
+                    print('some unexpected error happened during initialization')
+                    env.reset(task_config=example)
+                    obs = env._get_obs()
+                    current_observation = obs["screenshot"]
+
+            if len(self.history_responses) != 0:
+                before_screenshot = pil_to_base64(Image.open(BytesIO(self.history_images[-1])))
+                after_screenshot = pil_to_base64(Image.open(BytesIO(current_observation)))
+                messages = [
+                    {"role": "user", "content": [
+                        {"type": "text", "text": self.summary_prompt.format(
+                            instruction=instruction, 
+                            response=self.history_responses[-1].split('Action:')[1] if len(self.history_responses[-1].split('Action:')) > 1 else self.history_responses[-1]
+                        )},
+                        {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{before_screenshot}"}},
+                        {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{after_screenshot}"}},
+                    ]},
+                ]
+                summary_result = self.vlm.chat.completions.create(model=self.model, messages=messages, frequency_penalty=1, max_tokens=self.max_tokens, temperature=self.temperature, top_p=self.top_p)
+                summary_result = summary_result.choices[0].message.content.strip()
+                self.history_summary.append(summary_result)
+            
             if not is_single_color_image(current_observation):
-                if self.noise_type != "clean":
+                if self.noise_type != 'clean':
                     # if self.noise_type != "multi_apps" or (self.noise_type == "multi_apps" and len(self.history_images) == 0):
-                    current_observation, _ = perturb_agents(self.noise_type, self.noise_config, obs, self.platform, env, current_step, example=example)
+                    new_current_observation, unexpected_operation = perturb_agents(self.noise_type, self.noise_config, obs, self.platform, env, current_step, example=example)
             else:
                 logger.info(f"Perturbation analysis 0: Skip perturb this round! The OS might be sleeping...")
             
-            self.history_images.append(current_observation)
-            base64_image = encode_image(current_observation)
+            if self.noise_type in ['accidential_touch', 'app_minimization']:
+                with open(file=self.noise_config) as f:
+                    cfg = yaml.load(f, Loader=yaml.FullLoader)['noise']
+                    if current_step in cfg[self.noise_type]['step'] and unexpected_operation!=None:
+                        before_screenshot = pil_to_base64(Image.open(BytesIO(current_observation)))
+                        after_screenshot = pil_to_base64(Image.open(BytesIO(new_current_observation)))
+                        self.history_images.append(current_observation)
+                        messages = [
+                            {"role": "user", "content": [
+                                {"type": "text", "text": self.summary_prompt.format(
+                                    instruction=instruction, 
+                                    response=f'The agent accidentally {unexpected_operation}' if self.noise_type in ['accidential_touch', 'network_error'] else 'The agent accidentally press hotkey Win+d.'
+                                )},
+                                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{before_screenshot}"}},
+                                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{after_screenshot}"}},
+                            ]},
+                        ]
+                        summary_result = self.vlm.chat.completions.create(model=self.model, messages=messages, frequency_penalty=1, max_tokens=self.max_tokens, temperature=self.temperature, top_p=self.top_p)
+                        summary_result = summary_result.choices[0].message.content.strip()
+                        self.history_responses.append(f'I accidentally {unexpected_operation}')
+                        self.history_summary.append(summary_result)
+            self.history_images.append(new_current_observation)
+            base64_image = encode_image(new_current_observation)
+            
             try:
                 linearized_accessibility_tree = (
                     linearize_accessibility_tree(
@@ -802,26 +865,35 @@ class UITARSAgent:
             for history_idx, history_response in enumerate(self.history_responses):
                 # send at most history_n images to the model
                 if history_idx + self.history_n > len(self.history_responses):
-
                     cur_image = images[image_num]
                     # cur_image.save('test.png')
                     encoded_string = pil_to_base64(cur_image)
-                    messages.append({
-                        "role": "user",
-                        "content": [{"type": "image_url", "image_url": {"url": f"data:image/png;base64,{encoded_string}"}}]
-                    })
+                    if history_idx != 0:
+                        messages.append({
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": self.history_summary[history_idx].replace('The user', 'The agent')},
+                                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{encoded_string}"}}]
+                        })
+                    else:
+                        messages.append({
+                            "role": "user",
+                            "content": [
+                                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{encoded_string}"}}]
+                        })
                     image_num += 1
                     
                 messages.append({
                     "role": "assistant",
                     "content": [{"type": "text", "text": add_box_token(history_response)}]
                 })
-
             cur_image = images[image_num]
             encoded_string = pil_to_base64(cur_image)
             messages.append({
                 "role": "user",
-                "content": [{"type": "image_url", "image_url": {"url": f"data:image/png;base64,{encoded_string}"}}]
+                "content": [
+                    {"type": "text", "text": self.history_summary[history_idx].replace('The user', 'The agent')},
+                    {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{encoded_string}"}}]
             })
             image_num += 1
         
@@ -968,3 +1040,4 @@ class UITARSAgent:
         self.observations = []
         self.history_images = []
         self.history_responses = []
+        self.history_summary = []

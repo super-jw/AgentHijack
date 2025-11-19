@@ -36,16 +36,17 @@ noise:
 
   accidential_touch:
     w/o_app: True
-    probability: 0.8
+    step: [3]
 
   app_minimization:
-    probability: 0.8
+    step: [3]
 
   initialization_error:
     max_error_step: 2
   
   network_error:
+    step: [-1]
     local_ip: 192.168.97.1
 
   verification:
-    probability: 0.8
+    step: [-1]
