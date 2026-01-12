@@ -32,9 +32,8 @@
 
 
 ## 📢 Updates
-- 2024-10-22: We supported Docker🐳 for hosting virtual machines on virtualized platforms. Check below for detailed instructions!
-- 2024-06-15: We refactor the code of environment part to decompose VMware Integration, and start to support other platforms such as VitualBox, AWS, Azure, etc. Hold tight!
-- 2024-04-11: We released our [paper](https://arxiv.org/abs/2404.07972), [environment and benchmark](https://github.com/xlang-ai/OSWorld), and [project page](https://os-world.github.io/). Check it out!
+
+- 2026-01-23: We released our [paper](https://arxiv.org/abs/2404.07972), [environment and benchmark](https://github.com/xlang-ai/OSWorld). Check it out!
 
 ## 💾 Installation
 ### VMware/VirtualBox (Desktop, Laptop, Bare Metal Machine)
