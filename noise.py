@@ -647,10 +647,6 @@ def perturb_agents(noise_type, noise_config, observation, platform, env, current
         else:
             after_perturb = Image.open(BytesIO(observation["screenshot"]))
         # after_perturb.save('test.png')
-    elif noise_type == 'initialization_error':
-        after_perturb, new_instruction = agent_initialization_error(env, instruction, task_config, cfg)
-        # after_perturb.save('test.png')
-        return new_instruction
     elif noise_type == 'network_error':
         if current_step in cfg['step']:
             after_perturb = agent_network_error(env, cfg)
@@ -662,9 +658,6 @@ def perturb_agents(noise_type, noise_config, observation, platform, env, current
             after_perturb = agent_verification(env, cfg)
         else:
             after_perturb = Image.open(BytesIO(observation["screenshot"]))
-        # after_perturb.save('test.png')
-    elif noise_type == 'wallpaper':
-        after_perturb = agent_wallpaper(env)
         # after_perturb.save('test.png')
     
     image_bytes_io = BytesIO()
