@@ -13,7 +13,7 @@ from tqdm import tqdm
 
 import lib_run_single
 from desktop_env.desktop_env import DesktopEnv
-from mm_agents.multistep_uitars_agent import MULTISTEP_UITARSAgent
+from mm_agents.agenthijack_agent import AgentHijack_Agent
 
 # import wandb
 
@@ -171,7 +171,7 @@ def test(args: argparse.Namespace, test_all_meta: dict) -> None:
         "result_dir": args.result_dir,
     }
 
-    agent = MULTISTEP_UITARSAgent(
+    agent = AgentHijack_Agent(
         model=args.model,
         action_space=args.action_space,
         observation_type=args.observation_type,

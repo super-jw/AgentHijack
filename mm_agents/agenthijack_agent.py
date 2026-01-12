@@ -561,7 +561,7 @@ def trim_accessibility_tree(linearized_accessibility_tree, max_tokens):
     #     linearized_accessibility_tree += "[...]\n"
     return linearized_accessibility_tree
 
-class MULTISTEP_UITARSAgent:
+class AgentHijack_Agent:
     def __init__(
         self,
         model='ui-tars',
