@@ -544,24 +544,6 @@ def agent_app_minimization(env, cfg):
     current_observation = Image.open(BytesIO(obs["screenshot"]))
     return current_observation
 
-def agent_initialization_error(env, instruction, task_config, cfg):
-    max_error_step = cfg['max_error_step']
-    set_up_step = len(task_config['config'])
-    if max_error_step > set_up_step:
-        max_error_step = set_up_step
-
-    correct_step = task_config['config'][:set_up_step-max_error_step]
-    error_step = task_config['config'][set_up_step-max_error_step:]
-    task_config['config'] = correct_step
-    obs = env.reset(task_config)
-    time.sleep(5)
-    obs = env._get_obs()
-    current_observation = Image.open(BytesIO(obs["screenshot"]))
-    if len(error_step) > 0:
-        new_intruction = generate_new_instruction(instruction, error_step)
-        return current_observation, new_intruction
-    return current_observation, instruction
-
 def agent_network_error(env, cfg):
     if env.os_type == 'Ubuntu' or env.os_type == 'Windows':
         action_list = [
@@ -616,25 +598,6 @@ def agent_verification(env, cfg):
     #     obs, reward, done, info = env.step(action)
     current_observation = Image.open(BytesIO(obs["screenshot"]))
     return current_observation
-
-def agent_wallpaper(env):
-    config = [
-        {
-        'type': 'upload_file',
-        'parameters': {
-            'files': [{
-            'local_path': 'config/wallpaper/images/default.png',
-            'path': '/home/user/Pictures/default.png'}]
-        }},
-        {
-        'type': 'change_wallpaper',
-        'parameters': {
-            'path': '/home/user/Pictures/default.png'
-        }}]
-    env.setup_controller.setup(config)
-    obs = env._get_obs()
-    current_observation = Image.open(BytesIO(obs["screenshot"]))
-    return current_observation 
 
 def perturb_agents(noise_type, noise_config, observation, platform, env, current_step, instruction='', task_config='', example=''):
     with open(file=noise_config) as f:
