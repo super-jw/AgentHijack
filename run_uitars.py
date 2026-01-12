@@ -114,7 +114,7 @@ def config() -> argparse.Namespace:
     )
 
     # noise config
-    parser.add_argument("--noise_type", type=str, default="network_error", choices=[
+    parser.add_argument("--noise_type", type=str, default="marks", choices=[
                                                                                 'clean',
                                                                                 'pop_ups', 
                                                                                 'resolution', 

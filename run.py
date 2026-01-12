@@ -91,7 +91,7 @@ def config() -> argparse.Namespace:
     )
 
     # lm config
-    parser.add_argument("--model", type=str, default="qwen-vl")
+    parser.add_argument("--model", type=str, default="claude")
     parser.add_argument("--temperature", type=float, default=1.0)
     parser.add_argument("--top_p", type=float, default=0.9)
     parser.add_argument("--max_tokens", type=int, default=1500)
@@ -104,7 +104,7 @@ def config() -> argparse.Namespace:
     )
 
     # noise config
-    parser.add_argument("--noise_type", type=str, default="resolution", choices=[
+    parser.add_argument("--noise_type", type=str, default="verification", choices=[
                                                                                 'clean',
                                                                                 'pop_ups', 
                                                                                 'resolution', 
@@ -168,7 +168,7 @@ def test(args: argparse.Namespace, test_all_meta: dict) -> None:
         screen_size=(args.screen_width, args.screen_height),
         headless=args.headless,
         os_type = "Ubuntu",
-        require_a11y_tree=True
+        require_a11y_tree=False
         # require_a11y_tree=args.observation_type
         # in ["a11y_tree", "screenshot_a11y_tree", "som"],
     )

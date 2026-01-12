@@ -36,15 +36,15 @@ def run_single_example(agent, env, example, max_steps, instruction, args, exampl
             env=env,
             example=example
         )
-        if agent.noise_type != "clean":
-            # with open(os.path.join(example_result_dir, f"step_{step_idx + 1}_pre.png"),
-            #             "wb") as _f:
-            #         # screenshot before action
-            #         _f.write(obs['screenshot'])
-            with open(os.path.join(example_result_dir, f"step_{step_idx + 1}_agent_observe.png"),
-                        "wb") as _f:
-                    # screenshot before action, transform from byte string
-                    _f.write(base64.b64decode(agent.observations[-1]["screenshot"]))
+        # if agent.noise_type != "clean":
+        #     # with open(os.path.join(example_result_dir, f"step_{step_idx + 1}_pre.png"),
+        #     #             "wb") as _f:
+        #     #         # screenshot before action
+        #     #         _f.write(obs['screenshot'])
+        #     with open(os.path.join(example_result_dir, f"step_{step_idx + 1}_agent_observe.png"),
+        #                 "wb") as _f:
+        #             # screenshot before action, transform from byte string
+        #             _f.write(base64.b64decode(agent.observations[-1]["screenshot"]))
         for action in actions:
             # update the action according to the resolution
             if agent.noise_type == 'resolution':

@@ -601,7 +601,7 @@ class UITARSAgent:
         #     api_key="7077090a-5d29-4f1f-b904-fa11d5c5a349",
         # ) # should replace with your UI-TARS server api
         self.vlm = OpenAI(
-            base_url="http://10.184.17.224:9000/v1",
+            base_url="http://127.0.0.1:6006/v1",
             api_key="empty",
         ) # should replace with your UI-TARS server api
         self.temperature = self.runtime_conf["temperature"]

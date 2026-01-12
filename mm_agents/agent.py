@@ -9,7 +9,7 @@ import xml.etree.ElementTree as ET
 from http import HTTPStatus
 from io import BytesIO
 from typing import Dict, List
-
+from openai import OpenAI
 import backoff
 import dashscope
 import google.generativeai as genai
@@ -252,6 +252,7 @@ class PromptAgent:
         self.noise_type = noise_type
         self.noise_config = noise_config
 
+        self.history_summary = []
         self.thoughts = []
         self.actions = []
         self.observations = []
@@ -287,7 +288,7 @@ class PromptAgent:
         else:
             raise ValueError("Invalid experiment type: " + observation_type)
 
-    def predict(self, instruction: str, obs: Dict, env, example) -> List:
+    def predict(self, current_step: int, instruction: str, obs: Dict, env, example) -> List:
         """
         Predict the next action(s) based on the current observation.
         """
@@ -417,8 +418,8 @@ class PromptAgent:
         if self.observation_type in ["screenshot", "screenshot_a11y_tree"]:
             current_observation = obs["screenshot"]
             if not is_single_color_image(current_observation):
-                if self.noise_type != "" and self.noise_type != "initialization_error":
-                    current_observation = perturb_agents(self.noise_type, self.noise_config, obs, self.platform, env, example=example)
+                if self.noise_type != "clean":
+                    current_observation, _ = perturb_agents(self.noise_type, self.noise_config, obs, self.platform, env, current_step, example=example)
             else:
                 logger.info(f"Perturbation analysis 0: Skip perturb this round! The OS might be sleeping...")
             
@@ -579,36 +580,68 @@ class PromptAgent:
     def call_llm(self, payload):
 
         if self.model.startswith("gpt"):
-            headers = {
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}"
-            }
-            logger.info("Generating content with GPT model: %s", self.model)
-            response = requests.post(
-                "https://api.openai.com/v1/chat/completions",
-                headers=headers,
-                json=payload
+            messages = payload["messages"]
+            max_tokens = payload["max_tokens"]
+            top_p = payload["top_p"]
+            temperature = payload["temperature"]
+            Client = OpenAI(
+            base_url="https://yinli.one/v1",
+            api_key="sk-gRrSAPlVCrjEfuyLYHsS39ovQcxxwpeOw49B6Atw8sExk1nw",
             )
+            flag = 0
+            while True:
+                try:
+                    if flag > 20:
+                        break
+                    logger.info("Generating content with model: %s", self.model)
 
-            if response.status_code != 200:
-                if response.json()['error']['code'] == "context_length_exceeded":
-                    logger.error("Context length exceeded. Retrying with a smaller context.")
-                    payload["messages"] = [payload["messages"][0]] + payload["messages"][-1:]
-                    retry_response = requests.post(
-                        "https://api.openai.com/v1/chat/completions",
-                        headers=headers,
-                        json=payload
-                    )
-                    if retry_response.status_code != 200:
-                        logger.error(
-                            "Failed to call LLM even after attempt on shortening the history: " + retry_response.text)
-                        return ""
+                        # response = dashscope.MultiModalConversation.call(
+                        #     model=self.model,
+                        #     messages=qwen_messages,
+                        #     result_format="message",
+                        #     max_length=max_tokens,
+                        #     top_p=top_p,
+                        #     temperature=temperature
+                        # )
+                    response = Client.chat.completions.create(model='gpt-4o', 
+                                                                messages=messages, 
+                                                                frequency_penalty=1, 
+                                                                max_tokens=self.max_tokens, 
+                                                                temperature=temperature, 
+                                                                top_p=self.top_p)
+                    return response.choices[0].message.content
+                except:
+                    flag = flag + 1
+            # headers = {
+            #     "Content-Type": "application/json",
+            #     "Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}"
+            # }
+            # logger.info("Generating content with GPT model: %s", self.model)
+            # response = requests.post(
+            #     "https://api.openai.com/v1/chat/completions",
+            #     headers=headers,
+            #     json=payload
+            # )
 
-                logger.error("Failed to call LLM: " + response.text)
-                time.sleep(5)
-                return ""
-            else:
-                return response.json()['choices'][0]['message']['content']
+            # if response.status_code != 200:
+            #     if response.json()['error']['code'] == "context_length_exceeded":
+            #         logger.error("Context length exceeded. Retrying with a smaller context.")
+            #         payload["messages"] = [payload["messages"][0]] + payload["messages"][-1:]
+            #         retry_response = requests.post(
+            #             "https://api.openai.com/v1/chat/completions",
+            #             headers=headers,
+            #             json=payload
+            #         )
+            #         if retry_response.status_code != 200:
+            #             logger.error(
+            #                 "Failed to call LLM even after attempt on shortening the history: " + retry_response.text)
+            #             return ""
+
+            #     logger.error("Failed to call LLM: " + response.text)
+            #     time.sleep(5)
+            #     return ""
+            # else:
+            #     return response.json()['choices'][0]['message']['content']
 
         elif self.model.startswith("claude"):
             messages = payload["messages"]
@@ -616,63 +649,34 @@ class PromptAgent:
             top_p = payload["top_p"]
             temperature = payload["temperature"]
 
-            claude_messages = []
-
-            for i, message in enumerate(messages):
-                claude_message = {
-                    "role": message["role"],
-                    "content": []
-                }
-                assert len(message["content"]) in [1, 2], "One text, or one text with one image"
-                for part in message["content"]:
-
-                    if part['type'] == "image_url":
-                        image_source = {}
-                        image_source["type"] = "base64"
-                        image_source["media_type"] = "image/png"
-                        image_source["data"] = part['image_url']['url'].replace("data:image/png;base64,", "")
-                        claude_message['content'].append({"type": "image", "source": image_source})
-
-                    if part['type'] == "text":
-                        claude_message['content'].append({"type": "text", "text": part['text']})
-
-                claude_messages.append(claude_message)
-
-            # the claude not support system message in our endpoint, so we concatenate it at the first user message
-            if claude_messages[0]['role'] == "system":
-                claude_system_message_item = claude_messages[0]['content'][0]
-                claude_messages[1]['content'].insert(0, claude_system_message_item)
-                claude_messages.pop(0)
-
-            logger.debug("CLAUDE MESSAGE: %s", repr(claude_messages))
-
-            headers = {
-                "x-api-key": os.environ["ANTHROPIC_API_KEY"],
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json"
-            }
-
-            payload = {
-                "model": self.model,
-                "max_tokens": max_tokens,
-                "messages": claude_messages,
-                "temperature": temperature,
-                "top_p": top_p
-            }
-
-            response = requests.post(
-                "https://api.anthropic.com/v1/messages",
-                headers=headers,
-                json=payload
+            Client = OpenAI(
+            base_url="https://yinli.one/v1",
+            api_key="sk-8AEbBLJEaJozQBoPcOrj8CWeDYznOI1VJomZVAXVKFrnPLbC",
             )
+            flag = 0
+            while True:
+                try:
+                    if flag > 20:
+                        break
+                    logger.info("Generating content with model: %s", self.model)
 
-            if response.status_code != 200:
-
-                logger.error("Failed to call LLM: " + response.text)
-                time.sleep(5)
-                return ""
-            else:
-                return response.json()['content'][0]['text']
+                        # response = dashscope.MultiModalConversation.call(
+                        #     model=self.model,
+                        #     messages=qwen_messages,
+                        #     result_format="message",
+                        #     max_length=max_tokens,
+                        #     top_p=top_p,
+                        #     temperature=temperature
+                        # )
+                    response = Client.chat.completions.create(model='claude-3-7-sonnet-20250219', 
+                                                                messages=messages, 
+                                                                frequency_penalty=1, 
+                                                                max_tokens=self.max_tokens, 
+                                                                temperature=temperature, 
+                                                                top_p=self.top_p)
+                    return response.choices[0].message.content
+                except:
+                    flag = flag + 1
 
         elif self.model.startswith("mistral"):
             messages = payload["messages"]
@@ -695,7 +699,6 @@ class PromptAgent:
 
                 mistral_messages.append(mistral_message)
 
-            from openai import OpenAI
 
             client = OpenAI(api_key=os.environ["TOGETHER_API_KEY"],
                             base_url='https://api.together.xyz',
@@ -979,6 +982,39 @@ class PromptAgent:
                 print("Failed to call LLM: " + str(e))
                 return ""
 
+        elif self.model.startswith('GLM'):
+            messages = payload["messages"]
+            max_tokens = payload["max_tokens"]
+            top_p = payload["top_p"]
+            temperature = payload["temperature"]
+            Client = OpenAI(
+            base_url="https://api.siliconflow.cn/v1",
+            api_key="sk-fujajhzqumwfmlalafawyzudbxvqocqdsmsrcskguywlgvse",
+            )
+            flag = 0
+            while True:
+                try:
+                    if flag > 20:
+                        break
+                    logger.info("Generating content with model: %s", self.model)
+
+                        # response = dashscope.MultiModalConversation.call(
+                        #     model=self.model,
+                        #     messages=qwen_messages,
+                        #     result_format="message",
+                        #     max_length=max_tokens,
+                        #     top_p=top_p,
+                        #     temperature=temperature
+                        # )
+                    response = Client.chat.completions.create(model='zai-org/GLM-4.5V', 
+                                                                messages=messages, 
+                                                                frequency_penalty=1, 
+                                                                max_tokens=self.max_tokens, 
+                                                                temperature=temperature, 
+                                                                top_p=self.top_p)
+                    return response.choices[0].message.content
+                except:
+                    flag = flag + 1
         elif self.model.startswith("qwen"):
             messages = payload["messages"]
             max_tokens = payload["max_tokens"]
@@ -1002,11 +1038,10 @@ class PromptAgent:
                 qwen_messages.append(qwen_message)
 
             flag = 0
-            from openai import OpenAI
 
             Client = OpenAI(
-            base_url="http://10.184.17.224:8088/v1",
-            api_key="empty",
+            base_url="https://api.siliconflow.cn/v1",
+            api_key="sk-fujajhzqumwfmlalafawyzudbxvqocqdsmsrcskguywlgvse",
             )
             while True:
                 try:
@@ -1023,7 +1058,7 @@ class PromptAgent:
                         #     top_p=top_p,
                         #     temperature=temperature
                         # )
-                        response = Client.chat.completions.create(model=self.model, 
+                        response = Client.chat.completions.create(model='Qwen/Qwen2.5-VL-72B-Instruct', 
                                                                   messages=messages, 
                                                                   frequency_penalty=1, 
                                                                   max_tokens=self.max_tokens, 
@@ -1070,9 +1105,6 @@ class PromptAgent:
             except Exception as e:
                 print("Failed to call LLM: " + str(e))
                 return ""
-
-        else:
-            raise ValueError("Invalid model: " + self.model)
 
     def parse_actions(self, response: str, masks=None):
 

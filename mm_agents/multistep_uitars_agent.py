@@ -568,7 +568,7 @@ class MULTISTEP_UITARSAgent:
         platform="ubuntu",
         action_space="pyautogui",
         observation_type="screenshot",
-        base_url="http://10.184.17.224:9000/v1",
+        base_url="http://127.0.0.1:9000/v1",
         # observation_type can be in ["screenshot", "a11y_tree", "screenshot_a11y_tree", "som"]
         max_trajectory_length=50,
         a11y_tree_max_tokens=10000,
@@ -607,6 +607,10 @@ class MULTISTEP_UITARSAgent:
             base_url=base_url,
             api_key="empty",
         )  # should replace with your UI-TARS server api
+        self.onlooker = OpenAI(
+            base_url='https://api.siliconflow.cn/v1',
+            api_key="sk-dvnlkjtcpgibbodmsscgngzqeqsjudpginhurxxkqvmgwsja",
+        )
         self.temperature = self.runtime_conf["temperature"]
         self.top_k = self.runtime_conf["top_k"]
         self.top_p = self.runtime_conf["top_p"]
@@ -706,7 +710,7 @@ class MULTISTEP_UITARSAgent:
                         {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{pil_to_base64(Image.open(BytesIO(current_observation)))}"}},
                     ]},
                 ]
-                remind_result = self.vlm.chat.completions.create(model=self.model, messages=messages, frequency_penalty=1, max_tokens=self.max_tokens, temperature=self.temperature, top_p=self.top_p)
+                remind_result = self.onlooker.chat.completions.create(model='Qwen/Qwen2.5-VL-72B-Instruct', messages=messages, frequency_penalty=1, max_tokens=self.max_tokens, temperature=self.temperature, top_p=self.top_p)
                 remind_result = remind_result.choices[0].message.content.strip()
                 # avoid instruction follow error
                 remind_result = remind_result.split('Action')[0].split('Reminder:')[1].split('Thought')[0]
@@ -730,7 +734,7 @@ class MULTISTEP_UITARSAgent:
                         {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{after_screenshot}"}},
                     ]},
                 ]
-                summary_result = self.vlm.chat.completions.create(model=self.model, messages=messages, frequency_penalty=1, max_tokens=self.max_tokens, temperature=self.temperature, top_p=self.top_p)
+                summary_result = self.onlooker.chat.completions.create(model='Qwen/Qwen2.5-VL-72B-Instruct', messages=messages, frequency_penalty=1, max_tokens=self.max_tokens, temperature=self.temperature, top_p=self.top_p)
                 summary_result = summary_result.choices[0].message.content.strip()
                 self.history_summary.append(summary_result)
             
@@ -758,7 +762,7 @@ class MULTISTEP_UITARSAgent:
                                 {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{after_screenshot}"}},
                             ]},
                         ]
-                        summary_result = self.vlm.chat.completions.create(model=self.model, messages=messages, frequency_penalty=1, max_tokens=self.max_tokens, temperature=self.temperature, top_p=self.top_p)
+                        summary_result = self.onlooker.chat.completions.create(model='Qwen/Qwen2.5-VL-72B-Instruct', messages=messages, frequency_penalty=1, max_tokens=self.max_tokens, temperature=self.temperature, top_p=self.top_p)
                         summary_result = summary_result.choices[0].message.content.strip()
                         self.history_responses.append(f'I accidentally {unexpected_operation}')
                         self.history_summary.append(summary_result)

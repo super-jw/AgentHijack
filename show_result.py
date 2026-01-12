@@ -94,9 +94,10 @@ def get_result(action_space, use_model, observation_type, corruption_type, resul
 
 
 if __name__ == '__main__':
-    corruption = 'network_error'
-    clean_result = get_result("pyautogui", "ui-tars-ours", "screenshot", corruption, "./results")
-    perturb_result = get_result("pyautogui", "ui-tars", "screenshot", corruption, "./results")
+    # corruption = 'subtitle'
+    corruption = 'verification'
+    clean_result = get_result("pyautogui", "ui-tars-72b", "screenshot", 'app_minimization', "./results")
+    # perturb_result = get_result("pyautogui", "claude", "screenshot", corruption, "./results")
     for domain in clean_result:
         for id in clean_result[domain]:
             if domain in perturb_result.keys():
