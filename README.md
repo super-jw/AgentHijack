@@ -63,8 +63,9 @@ nohup bash vllm_server/agenthijack-agent.sh > server.log &
 python run_agenthijack_agent.py --path_to_vm vmware_vm_data/Ubuntu0/Ubuntu0.vmx --headless --observation_type screenshot --model ui-tars --noise_type pop_ups --result_dir ./results
 ```
 
-## ❤️ Acknowledgement
-Parts of the codes are borrowed from [OSWorld](https://github.com/xlang-ai/OSWorld) and [PopupAttack](https://github.com/SALT-NLP/PopupAttack), we express our great thanks to them for the wonderful works.
+## ⚙️ Corruption Setups
+To support flexible setups for different corruptions, we offer configurable parameters in YAML file `/vllm_server/default.yaml`. Please ref to our paper for detailed explanations of these parameters.
+
 ## 📄 Citation
 If you find this environment useful, please consider citing our work:
 ```
@@ -77,3 +78,6 @@ If you find this environment useful, please consider citing our work:
       primaryClass={cs.AI}
 }
 ```
+
+## ❤️ Acknowledgement
+Parts of the codes are borrowed from [OSWorld](https://github.com/xlang-ai/OSWorld) and [PopupAttack](https://github.com/SALT-NLP/PopupAttack), we express our great thanks to them for the wonderful works.
