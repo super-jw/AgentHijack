@@ -104,16 +104,15 @@ def config() -> argparse.Namespace:
     )
 
     # noise config
-    parser.add_argument("--noise_type", type=str, default="verification", choices=[
+    parser.add_argument("--noise_type", type=str, default="pop_ups", choices=[
                                                                                 'clean',
                                                                                 'pop_ups', 
                                                                                 'resolution', 
                                                                                 'marks', 
                                                                                 'subtitle', 
                                                                                 'multi_apps', 
-                                                                                'accidential_touch',
+                                                                                'accidental_touch',
                                                                                 'app_minimization',
-                                                                                'initialization_error',
                                                                                 'network_error',
                                                                                 'verification'])
 
@@ -308,9 +307,6 @@ def get_result(action_space, use_model, observation_type, corruption_type, resul
 if __name__ == "__main__":
     ####### The complete version of the list of examples #######
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
-    os.environ['OPENAI_API_KEY'] = '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'
-    os.environ['GENAI_API_KEY'] = 'AIzaSyCvO6hZBStR2_DDGrNC5UQIDcUG-AijDMY'
-    os.environ['DASHSCOPE_API_KEY'] = 'sk-f719629e3d9d4efeb27f060bc4735dda'
     args = config()
 
     with open(args.test_all_meta_path, "r", encoding="utf-8") as f:
