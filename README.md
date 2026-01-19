@@ -4,7 +4,7 @@
 
 <div align="center">
   <h1><a href="" target="_blank">AgentHijack: Benchmarking Computer Use Agent Robustness to Common Environment Corruptions</a></h1>
-  <span style="color:red">📢 <strong><i>We are currently organizing and presenting the code for AgentHijack. If you have any questions about the code, feel free to create an issue. 
+  <span style="color:red"> <strong><i>We are currently organizing and presenting the code for AgentHijack. If you have any questions about the code, feel free to create an issue. 
   If you are interested in our work, please star ⭐ our project, Thx 💕.</i></strong></span>
 </div>
 

@@ -94,4 +94,4 @@ def get_result(action_space, use_model, observation_type, corruption_type, resul
 
 
 if __name__ == '__main__':
-    get_result("pyautogui", "ui-tars-72b", "screenshot", 'app_minimization', "./results")
+    get_result("pyautogui", "ui-tars", "screenshot", 'pop_ups', "./results")
