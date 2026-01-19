@@ -1,0 +1,1 @@
+CUDA_VISIBLE_DEVICES=0 python -m vllm.entrypoints.openai.api_server --served-model-name ui-tars --model UI-TARS-7B-DPO --port 9000 --tensor-parallel-size 1 --gpu-memory-utilization 0.85 --limit-mm-per-prompt "image=16" --disable-custom-all-reduce
