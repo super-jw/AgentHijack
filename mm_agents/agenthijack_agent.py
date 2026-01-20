@@ -735,7 +735,7 @@ class AgentHijack_Agent:
             else:
                 logger.info(f"Perturbation analysis 0: Skip perturb this round! The OS might be sleeping...")
             
-            if self.noise_type in ['accidential_touch', 'app_minimization']:
+            if self.noise_type in ['accidental_touch', 'app_minimization']:
                 with open(file=self.noise_config) as f:
                     cfg = yaml.load(f, Loader=yaml.FullLoader)['noise']
                     if current_step in cfg[self.noise_type]['step'] and unexpected_operation!=None:
@@ -746,7 +746,7 @@ class AgentHijack_Agent:
                             {"role": "user", "content": [
                                 {"type": "text", "text": self.summary_prompt.format(
                                     instruction=instruction, 
-                                    response=f'The agent accidentally {unexpected_operation}' if self.noise_type in ['accidential_touch', 'network_error'] else 'The agent accidentally press hotkey Win+d.'
+                                    response=f'The agent accidentally {unexpected_operation}' if self.noise_type in ['accidental_touch', 'network_error'] else 'The agent accidentally press hotkey Win+d.'
                                 )},
                                 {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{before_screenshot}"}},
                                 {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{after_screenshot}"}},
