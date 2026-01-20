@@ -418,8 +418,7 @@ class PromptAgent:
         if self.observation_type in ["screenshot", "screenshot_a11y_tree"]:
             current_observation = obs["screenshot"]
             if not is_single_color_image(current_observation):
-                if self.noise_type != "clean":
-                    current_observation, _ = perturb_agents(self.noise_type, self.noise_config, obs, self.platform, env, current_step, example=example)
+                current_observation, _ = perturb_agents(self.noise_type, self.noise_config, obs, self.platform, env, current_step, example=example)
             else:
                 logger.info(f"Perturbation analysis 0: Skip perturb this round! The OS might be sleeping...")
             
