@@ -121,9 +121,8 @@ def config() -> argparse.Namespace:
                                                                                 'marks', 
                                                                                 'subtitle', 
                                                                                 'multi_apps', 
-                                                                                'accidential_touch',
+                                                                                'accidental_touch',
                                                                                 'app_minimization',
-                                                                                'initialization_error',
                                                                                 'network_error',
                                                                                 'verification'])
 

@@ -599,18 +599,10 @@ class AgentHijack_Agent:
         self.a11y_tree_max_tokens = a11y_tree_max_tokens
         self.model_type = model_type
         self.runtime_conf = runtime_conf
-        # self.vlm = OpenAI(
-        #     base_url="https://ark.cn-beijing.volces.com/api/v3",
-        #     api_key="7077090a-5d29-4f1f-b904-fa11d5c5a349",
-        # ) # should replace with your UI-TARS server api
         self.vlm = OpenAI(
             base_url=base_url,
             api_key="empty",
         )  # should replace with your UI-TARS server api
-        self.onlooker = OpenAI(
-            base_url='https://api.siliconflow.cn/v1',
-            api_key="sk-dvnlkjtcpgibbodmsscgngzqeqsjudpginhurxxkqvmgwsja",
-        )
         self.temperature = self.runtime_conf["temperature"]
         self.top_k = self.runtime_conf["top_k"]
         self.top_p = self.runtime_conf["top_p"]
@@ -710,7 +702,7 @@ class AgentHijack_Agent:
                         {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{pil_to_base64(Image.open(BytesIO(current_observation)))}"}},
                     ]},
                 ]
-                remind_result = self.onlooker.chat.completions.create(model='Qwen/Qwen2.5-VL-72B-Instruct', messages=messages, frequency_penalty=1, max_tokens=self.max_tokens, temperature=self.temperature, top_p=self.top_p)
+                remind_result = self.vlm.chat.completions.create(model=self.model, messages=messages, frequency_penalty=1, max_tokens=self.max_tokens, temperature=self.temperature, top_p=self.top_p)
                 remind_result = remind_result.choices[0].message.content.strip()
                 # avoid instruction follow error
                 remind_result = remind_result.split('Action')[0].split('Reminder:')[1].split('Thought')[0]
@@ -734,14 +726,12 @@ class AgentHijack_Agent:
                         {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{after_screenshot}"}},
                     ]},
                 ]
-                summary_result = self.onlooker.chat.completions.create(model='Qwen/Qwen2.5-VL-72B-Instruct', messages=messages, frequency_penalty=1, max_tokens=self.max_tokens, temperature=self.temperature, top_p=self.top_p)
+                summary_result = self.vlm.chat.completions.create(model=self.model, messages=messages, frequency_penalty=1, max_tokens=self.max_tokens, temperature=self.temperature, top_p=self.top_p)
                 summary_result = summary_result.choices[0].message.content.strip()
                 self.history_summary.append(summary_result)
             
             if not is_single_color_image(current_observation):
-                if self.noise_type != 'clean':
-                    # if self.noise_type != "multi_apps" or (self.noise_type == "multi_apps" and len(self.history_images) == 0):
-                    new_current_observation, unexpected_operation = perturb_agents(self.noise_type, self.noise_config, obs, self.platform, env, current_step, example=example)
+                new_current_observation, unexpected_operation = perturb_agents(self.noise_type, self.noise_config, obs, self.platform, env, current_step, example=example)
             else:
                 logger.info(f"Perturbation analysis 0: Skip perturb this round! The OS might be sleeping...")
             
@@ -762,7 +752,7 @@ class AgentHijack_Agent:
                                 {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{after_screenshot}"}},
                             ]},
                         ]
-                        summary_result = self.onlooker.chat.completions.create(model='Qwen/Qwen2.5-VL-72B-Instruct', messages=messages, frequency_penalty=1, max_tokens=self.max_tokens, temperature=self.temperature, top_p=self.top_p)
+                        summary_result = self.vlm.chat.completions.create(model=self.model, messages=messages, frequency_penalty=1, max_tokens=self.max_tokens, temperature=self.temperature, top_p=self.top_p)
                         summary_result = summary_result.choices[0].message.content.strip()
                         self.history_responses.append(f'I accidentally {unexpected_operation}')
                         self.history_summary.append(summary_result)
