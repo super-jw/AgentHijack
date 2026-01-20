@@ -91,7 +91,7 @@ def config() -> argparse.Namespace:
     )
 
     # lm config
-    parser.add_argument("--model", type=str, default="claude")
+    parser.add_argument("--model", type=str, default="openai/chatgpt-4o-latest")
     parser.add_argument("--temperature", type=float, default=1.0)
     parser.add_argument("--top_p", type=float, default=0.9)
     parser.add_argument("--max_tokens", type=int, default=1500)
@@ -168,8 +168,6 @@ def test(args: argparse.Namespace, test_all_meta: dict) -> None:
         headless=args.headless,
         os_type = "Ubuntu",
         require_a11y_tree=False
-        # require_a11y_tree=args.observation_type
-        # in ["a11y_tree", "screenshot_a11y_tree", "som"],
     )
 
     for domain in tqdm(test_all_meta, desc="Domain"):
@@ -198,7 +196,7 @@ def test(args: argparse.Namespace, test_all_meta: dict) -> None:
                 args.action_space,
                 args.observation_type,
                 args.noise_type,
-                args.model,
+                args.model.split('/')[-1],
                 domain,
                 example_id,
             )
@@ -235,7 +233,7 @@ def test(args: argparse.Namespace, test_all_meta: dict) -> None:
 def get_unfinished(
     action_space, use_model, observation_type, corruption_type, result_dir, total_file_json
 ):
-    target_dir = os.path.join(result_dir, action_space, observation_type, corruption_type, use_model)
+    target_dir = os.path.join(result_dir, action_space, observation_type, corruption_type, use_model.split('/')[-1])
 
     if not os.path.exists(target_dir):
         return total_file_json
@@ -271,7 +269,7 @@ def get_unfinished(
 
 
 def get_result(action_space, use_model, observation_type, corruption_type, result_dir, total_file_json):
-    target_dir = os.path.join(result_dir, action_space, observation_type, corruption_type, use_model)
+    target_dir = os.path.join(result_dir, action_space, observation_type, corruption_type, use_model.split('/')[-1])
     if not os.path.exists(target_dir):
         print("New experiment, no result yet.")
         return None

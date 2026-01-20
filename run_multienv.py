@@ -92,7 +92,7 @@ def config() -> argparse.Namespace:
     )
 
     # lm config
-    parser.add_argument("--model", type=str, default="gpt-4o")
+    parser.add_argument("--model", type=str, default="openai/chatgpt-4o-latest")
     parser.add_argument("--temperature", type=float, default=1.0)
     parser.add_argument("--top_p", type=float, default=0.9)
     parser.add_argument("--max_tokens", type=int, default=1500)
@@ -161,7 +161,7 @@ def run_env_tasks(env_idx: int, env: DesktopEnv, agent: PromptAgent, env_tasks: 
                 args.result_dir,
                 args.action_space,
                 args.observation_type,
-                args.model,
+                args.model.split('/')[-1],
                 domain,
                 example_id,
             )
@@ -258,7 +258,7 @@ def test(args: argparse.Namespace, test_all_meta: dict) -> None:
 def get_unfinished(
     action_space, use_model, observation_type, result_dir, total_file_json
 ):
-    target_dir = os.path.join(result_dir, action_space, observation_type, use_model)
+    target_dir = os.path.join(result_dir, action_space, observation_type, use_model.split('/')[-1])
 
     if not os.path.exists(target_dir):
         return total_file_json
@@ -293,7 +293,7 @@ def get_unfinished(
 
 
 def get_result(action_space, use_model, observation_type, result_dir, total_file_json):
-    target_dir = os.path.join(result_dir, action_space, observation_type, use_model)
+    target_dir = os.path.join(result_dir, action_space, observation_type, use_model.split('/')[-1])
     if not os.path.exists(target_dir):
         print("New experiment, no result yet.")
         return None
