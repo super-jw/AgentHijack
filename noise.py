@@ -399,6 +399,14 @@ def draw_marks(current_observation, current_boundingbox, config):
                     inner_radius = mark_size * 0.4
                     points = generate_star_points(center_x, center_y, outer_radius, inner_radius)
                     draw.polygon(points, fill=color)
+                elif mark_type == 'rectangle':
+                    top_left = (center_x - mark_size, center_y - mark_size)
+                    bottom_right = (center_x + mark_size, center_y + mark_size)
+                    draw.rectangle([top_left, bottom_right], outline=color, width=2)
+                elif mark_type == 'circle':
+                    top_left = (center_x - mark_size, center_y - mark_size)
+                    bottom_right = (center_x + mark_size, center_y + mark_size)
+                    draw.ellipse([top_left, bottom_right], outline=color, width=2)
                 placed_marks += 1
         else:
             if mark_type == 'star':
@@ -406,6 +414,14 @@ def draw_marks(current_observation, current_boundingbox, config):
                 inner_radius = mark_size * 0.4
                 points = generate_star_points(center_x, center_y, outer_radius, inner_radius)
                 draw.polygon(points, fill=color)
+            elif mark_type == 'rectangle':
+                top_left = (center_x - mark_size, center_y - mark_size)
+                bottom_right = (center_x + mark_size, center_y + mark_size)
+                draw.rectangle([top_left, bottom_right], outline=color, width=2)
+            elif mark_type == 'circle':
+                top_left = (center_x - mark_size, center_y - mark_size)
+                bottom_right = (center_x + mark_size, center_y + mark_size)
+                draw.ellipse([top_left, bottom_right], outline=color, width=2)
             placed_marks += 1
 
     return current_observation
@@ -428,8 +444,8 @@ def agent_pop_ups(current_boundingbox, nodes, current_observation, cfg):
     return current_observation
 
 def agent_resolution(current_observation, cfg):
-    new_width = current_observation.width // int(cfg['scale'])
-    new_height = current_observation.height // int(cfg['scale'])
+    new_width = current_observation.width * float(cfg['scale'])
+    new_height = current_observation.height * float(cfg['scale'])
     current_observation = current_observation.resize((new_width, new_height))
     return current_observation
 
@@ -468,7 +484,10 @@ def agent_subtitle(current_observation, cfg):
     if position == 'top':
         x = (width - text_width) // 2
         y = padding
-    else:  # bottom
+    elif position == 'middle':
+       x = (width - text_width) // 2
+       y = (height - text_height) // 2
+    else: # bottom
         x = (width - text_width) // 2
         y = height - text_height - padding
     
@@ -507,15 +526,15 @@ def agent_multi_apps(env, cfg, exist_app=[]):
     current_observation = Image.open(BytesIO(obs["screenshot"]))
     return current_observation 
 
-def agent_accidential_touch(tag_pos, env, cfg):
+def agent_accidental_touch(tag_pos, env, cfg):
     max_attempts = 1000
     attempts = 0
     # probability = cfg['probability']
     click_pos = None
     while(attempts < max_attempts):
         attempts += 1
-        accidential_touch_pos = random.choice(tag_pos)
-        x, y, w, h = accidential_touch_pos[0], accidential_touch_pos[1], accidential_touch_pos[2], accidential_touch_pos[3]
+        accidental_touch_pos = random.choice(tag_pos)
+        x, y, w, h = accidental_touch_pos[0], accidental_touch_pos[1], accidental_touch_pos[2], accidental_touch_pos[3]
         if cfg['w/o_app']:
             if x > 0:
                 break
@@ -629,13 +648,13 @@ def perturb_agents(noise_type, noise_config, observation, platform, env, current
         else:
             after_perturb = Image.open(BytesIO(observation["screenshot"]))
         # after_perturb.save('test.png')
-    elif noise_type == 'accidential_touch':
+    elif noise_type == 'accidental_touch':
         if current_step in cfg['step']:
             env.require_a11y_tree = True
             observation = env._get_obs()
             env.require_a11y_tree = False
             current_boundingbox, nodes, _, linearized_accessibility_tree = tag_screenshot(observation["screenshot"], observation["accessibility_tree"], platform)
-            after_perturb, click_pos = agent_accidential_touch(current_boundingbox, env, cfg)
+            after_perturb, click_pos = agent_accidental_touch(current_boundingbox, env, cfg)
             unexpected_operation = f'click ({click_pos[0], click_pos[1]})'
         else:
             after_perturb = Image.open(BytesIO(observation["screenshot"]))
