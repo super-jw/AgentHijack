@@ -562,17 +562,5 @@ def scale_actions(action: str, scale: float) -> str:
     
     return action
 
-def generate_new_instruction(instruction, error_step):
-    new_instruction = instruction + ' Before doing this, you need to execute the following actions first to initialize the environment.'
-    num = 0
-    for action in error_step:
-        num += 1
-        new_instruction += '\n {}. '.format(str(num))
-        config_type = action["type"]
-        parameters = str(action["parameters"])
-        new_instruction += '{} {}'.format(config_type, parameters)
-        
-    return new_instruction
-
 if __name__ == '__main__':
     print(scale_actions('pyautogui.scroll(-5, x=960.0, y=540.0)', 2))
