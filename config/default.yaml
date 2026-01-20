@@ -13,7 +13,7 @@ noise:
     overlap: True
 
   resolution:
-    scale: 2
+    scale: 0.5
 
   marks:
     number: 50
@@ -34,19 +34,16 @@ noise:
   multi_apps:
     another_app: vscode
 
-  accidential_touch:
+  accidental_touch:
     w/o_app: True
     step: [3]
 
   app_minimization:
     step: [3]
-
-  initialization_error:
-    max_error_step: 2
   
   network_error:
     step: [-1]
-    local_ip: 192.168.97.1
+    local_ip: 127.0.0.1
 
   verification:
     step: [-1]
