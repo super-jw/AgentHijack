@@ -69,7 +69,7 @@ def config() -> argparse.Namespace:
     )
 
     # environment config
-    parser.add_argument("--path_to_vm", type=str, default='vmware_vm_data/Ubuntu0/Ubuntu0.vmx')
+    parser.add_argument("--path_to_vm", type=str, default=None)
     parser.add_argument(
         "--headless", default=True, action="store_true", help="Run in headless machine"
     )
@@ -103,11 +103,11 @@ def config() -> argparse.Namespace:
     # example config
     parser.add_argument("--domain", type=str, default="all")
     parser.add_argument(
-        "--test_all_meta_path", type=str, default="evaluation_examples/test_all.json"
+        "--test_all_meta_path", type=str, default="./evaluation_examples/test_all.json"
     )
 
     # noise config
-    parser.add_argument("--noise_type", type=str, default="pop_ups", choices=['clean',
+    parser.add_argument("--noise_type", type=str, default="marks", choices=['clean',
                                                                             'pop_ups', 
                                                                             'resolution', 
                                                                             'marks', 
@@ -178,6 +178,7 @@ def run_env_tasks(env_idx: int, env: DesktopEnv, agent, env_tasks: dict, args: a
                 args.result_dir,
                 args.action_space,
                 args.observation_type,
+                args.noise_type,
                 args.model,
                 args.trial_id,
                 domain,
@@ -246,28 +247,16 @@ def test(args: argparse.Namespace, test_all_meta: dict) -> None:
     for env_idx in range(args.num_envs):
         logger.info(f"Setting up environment {env_idx + 1}/{args.num_envs}")
         agent = UITARSAgent(
-        model=args.model,
-        action_space=args.action_space,
-        observation_type=args.observation_type,
-        max_trajectory_length=args.max_trajectory_length,
-        model_type=args.model_type,
-        runtime_conf = {
-            "infer_mode": args.infer_mode,
-            "prompt_style": args.prompt_style,
-            "input_swap": args.input_swap,
-            "language": args.language,
-            "history_n": args.history_n,
-            "max_pixels": args.max_pixels,
-            "min_pixels": args.min_pixels,
-            "callusr_tolerance": args.callusr_tolerance,
-            "temperature": args.temperature,
-            "top_p": args.top_p,
-            "top_k": args.top_k,
-            "max_tokens": args.max_tokens
-        },
-        noise_type=args.noise_type,
-        noise_config = args.noise_config
-    )
+            base_url=f"{args.server_ip}:{args.server_port + env_idx % 8}/v1",
+            # max_tokens=args.max_tokens,
+            # top_p=args.top_p,
+            # temperature=args.temperature,
+            action_space=args.action_space,
+            observation_type=args.observation_type,
+            max_trajectory_length=args.max_trajectory_length,
+            noise_type=args.noise_type,
+            noise_config = args.noise_config
+        )
 
         agents.append(agent)
 
@@ -277,8 +266,8 @@ def test(args: argparse.Namespace, test_all_meta: dict) -> None:
             screen_size=(args.screen_width, args.screen_height),
             headless=args.headless,
             os_type = "Ubuntu",
-            require_a11y_tree=args.observation_type
-            in ["a11y_tree", "screenshot_a11y_tree", "som"],
+            provider_name="docker",
+            require_a11y_tree=False
         )
 
         envs.append(env)
@@ -310,9 +299,9 @@ def test(args: argparse.Namespace, test_all_meta: dict) -> None:
 
 
 def get_unfinished(
-    action_space, use_model, observation_type, result_dir, trial_id, total_file_json 
+    action_space, use_model, observation_type, corruption_type, result_dir, trial_id, total_file_json 
 ):
-    target_dir = os.path.join(result_dir, action_space, observation_type, use_model, trial_id)
+    target_dir = os.path.join(result_dir, action_space, observation_type, corruption_type, use_model, trial_id)
 
     if not os.path.exists(target_dir):
         return total_file_json
@@ -346,8 +335,8 @@ def get_unfinished(
     return total_file_json
 
 
-def get_result(action_space, use_model, observation_type, result_dir, trial_id, total_file_json):
-    target_dir = os.path.join(result_dir, action_space, observation_type, use_model, trial_id)
+def get_result(action_space, use_model, observation_type, corruption_type, result_dir, trial_id, total_file_json):
+    target_dir = os.path.join(result_dir, action_space, observation_type, corruption_type, use_model, trial_id)
     if not os.path.exists(target_dir):
         print("New experiment, no result yet.")
         return None
@@ -396,6 +385,7 @@ if __name__ == "__main__":
         args.action_space,
         args.model,
         args.observation_type,
+        args.noise_type,
         args.result_dir,
         args.trial_id,
         test_all_meta,
@@ -409,6 +399,7 @@ if __name__ == "__main__":
         args.action_space,
         args.model,
         args.observation_type,
+        args.noise_type,
         args.result_dir,
         args.trial_id,
         test_all_meta,
