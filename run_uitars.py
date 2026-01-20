@@ -114,18 +114,16 @@ def config() -> argparse.Namespace:
     )
 
     # noise config
-    parser.add_argument("--noise_type", type=str, default="marks", choices=[
-                                                                                'clean',
-                                                                                'pop_ups', 
-                                                                                'resolution', 
-                                                                                'marks', 
-                                                                                'subtitle', 
-                                                                                'multi_apps', 
-                                                                                'accidential_touch',
-                                                                                'app_minimization',
-                                                                                'initialization_error',
-                                                                                'network_error',
-                                                                                'verification'])
+    parser.add_argument("--noise_type", type=str, default="pop_ups", choices=['clean',
+                                                                            'pop_ups', 
+                                                                            'resolution', 
+                                                                            'marks', 
+                                                                            'subtitle', 
+                                                                            'multi_apps', 
+                                                                            'accidental_touch',
+                                                                            'app_minimization',
+                                                                            'network_error',
+                                                                            'verification'])
 
     parser.add_argument("--noise_config", type=str, default="config/default.yaml")
 

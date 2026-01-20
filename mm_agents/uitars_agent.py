@@ -596,10 +596,6 @@ class UITARSAgent:
         self.a11y_tree_max_tokens = a11y_tree_max_tokens
         self.model_type = model_type
         self.runtime_conf = runtime_conf
-        # self.vlm = OpenAI(
-        #     base_url="https://ark.cn-beijing.volces.com/api/v3",
-        #     api_key="7077090a-5d29-4f1f-b904-fa11d5c5a349",
-        # ) # should replace with your UI-TARS server api
         self.vlm = OpenAI(
             base_url="http://127.0.0.1:9000/v1",
             api_key="empty",

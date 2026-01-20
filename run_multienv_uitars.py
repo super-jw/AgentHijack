@@ -17,7 +17,7 @@ from multiprocessing import Process, Manager
 import lib_run_single
 from desktop_env.desktop_env import DesktopEnv
 
-from mm_agents.uitars_agent_test import UITARSAgent
+from mm_agents.uitars_agent import UITARSAgent
 # import wandb
 
 
@@ -107,23 +107,24 @@ def config() -> argparse.Namespace:
     )
 
     # noise config
-    parser.add_argument("--noise_type", type=str, default="", choices=['pop_ups', 
-                                                                                'resolution', 
-                                                                                'marks', 
-                                                                                'subtitle', 
-                                                                                'multi_apps', 
-                                                                                'accidential_touch',
-                                                                                'app_minimization',
-                                                                                'initialization_error',
-                                                                                'wallpaper'])
+    parser.add_argument("--noise_type", type=str, default="pop_ups", choices=['clean',
+                                                                            'pop_ups', 
+                                                                            'resolution', 
+                                                                            'marks', 
+                                                                            'subtitle', 
+                                                                            'multi_apps', 
+                                                                            'accidental_touch',
+                                                                            'app_minimization',
+                                                                            'network_error',
+                                                                            'verification'])
 
     parser.add_argument("--noise_config", type=str, default="config/default.yaml")
 
     # logging related
     parser.add_argument("--result_dir", type=str, default="./results")
     parser.add_argument("--num_envs", type=int, default=1, help="Number of environments to run in parallel")
-    parser.add_argument("--server_ip", type=str, default="http://8.130.84.63")
-    parser.add_argument("--server_port", type=int, default=55382)
+    parser.add_argument("--server_ip", type=str, default="http://127.0.0.1")
+    parser.add_argument("--server_port", type=int, default=9000)
     parser.add_argument("--trial-id", type=str, default="0")
     args = parser.parse_args()
 
@@ -245,16 +246,28 @@ def test(args: argparse.Namespace, test_all_meta: dict) -> None:
     for env_idx in range(args.num_envs):
         logger.info(f"Setting up environment {env_idx + 1}/{args.num_envs}")
         agent = UITARSAgent(
-            base_url=f"{args.server_ip}:{args.server_port + env_idx % 8}/v1",
-            # max_tokens=args.max_tokens,
-            # top_p=args.top_p,
-            # temperature=args.temperature,
-            action_space=args.action_space,
-            observation_type=args.observation_type,
-            max_trajectory_length=args.max_trajectory_length,
-            noise_type=args.noise_type,
-            noise_config = args.noise_config,
-        )
+        model=args.model,
+        action_space=args.action_space,
+        observation_type=args.observation_type,
+        max_trajectory_length=args.max_trajectory_length,
+        model_type=args.model_type,
+        runtime_conf = {
+            "infer_mode": args.infer_mode,
+            "prompt_style": args.prompt_style,
+            "input_swap": args.input_swap,
+            "language": args.language,
+            "history_n": args.history_n,
+            "max_pixels": args.max_pixels,
+            "min_pixels": args.min_pixels,
+            "callusr_tolerance": args.callusr_tolerance,
+            "temperature": args.temperature,
+            "top_p": args.top_p,
+            "top_k": args.top_k,
+            "max_tokens": args.max_tokens
+        },
+        noise_type=args.noise_type,
+        noise_config = args.noise_config
+    )
 
         agents.append(agent)
 
