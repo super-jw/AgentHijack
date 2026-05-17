@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.png" alt="AgentHijack Logo" width="320">
+  <img src="assets/logo.png" alt="AgentHijack Logo" width="200">
 </p>
 
 <div align="center">
