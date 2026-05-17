@@ -1,5 +1,6 @@
 ._*
 .DS_Store  # 同时建议忽略 macOS 的 .DS_Store 文件夹配置文件
+.claude
 
 # Model checkpoints
 *.pth
