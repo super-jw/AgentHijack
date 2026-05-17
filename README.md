@@ -1,28 +1,28 @@
 <p align="center">
-  <img src="assets/demo_logo.png" alt="Banner">
+  <img src="assets/logo.png" alt="AgentHijack Logo" width="320">
 </p>
 
 <div align="center">
-  <h1><a href="" target="_blank">AgentHijack: Benchmarking Computer Use Agent Robustness to Common Environment Corruptions</a></h1>
+  <h1><a href="https://agenthijack.github.io/" target="_blank">AgentHijack: Benchmarking Computer Use Agent Robustness to Common Environment Corruptions</a></h1>
   <span style="color:red"> <strong><i>We are currently organizing and presenting the code for AgentHijack. If you have any questions about the code, feel free to create an issue. 
   If you are interested in our work, please star ⭐ our project, Thx 💕.</i></strong></span>
 </div>
 
 <div align="center">
 
-[![Paper](https://img.shields.io/badge/Paper-arXiv:2506.00618-red)]()
-[![HuggingFace](https://img.shields.io/badge/🤗%20HuggingFace-Datasets-yellow)]()
+[![Paper](https://img.shields.io/badge/Paper-ICML_2026-red)](https://openreview.net/pdf?id=0H5Im3Xvuf)
+[![HuggingFace](https://img.shields.io/badge/🤗%20HuggingFace-Model-yellow)](https://huggingface.co/TMLR-Group-HF/AgentHijack-Agent)
 <img src="https://img.shields.io/badge/License-Apache_2.0-green.svg" alt="License">
-<img src="https://visitor-badge.laobi.icu/badge?page_id=super-jw.AgentHijack"/>
-<img src="https://img.shields.io/github/stars/super-jw/AgentHijack?style=flat-square&logo=github" alt="Stars">
-<img src="https://img.shields.io/github/issues/super-jw/AgentHijack?color=red" alt="Issues">
-<img src="https://img.shields.io/github/issues-closed/super-jw/AgentHijack?color=success" alt="Closed Issues">
+<img src="https://visitor-badge.laobi.icu/badge?page_id=tmlr-group.AgentHijack"/>
+<img src="https://img.shields.io/github/stars/tmlr-group/AgentHijack?style=flat-square&logo=github" alt="Stars">
+<img src="https://img.shields.io/github/issues/tmlr-group/AgentHijack?color=red" alt="Issues">
+<img src="https://img.shields.io/github/issues-closed/tmlr-group/AgentHijack?color=success" alt="Closed Issues">
 </div>
 
 
 ## 📢 Updates
-- 2026-01-23: We release the code of AgentHijack. Check it out!
-- 2026-01-23: We release the AgentHijack in [arxiv]()!
+- 2026-05-17: We release the code of AgentHijack. Check it out!
+- 2026-05-01: AgentHijack is accepted to [ICML 2026](https://agenthijack.github.io/)!
 
 ## 💾 Installation
 This repository is built on [OSWorld](https://github.com/xlang-ai/OSWorld/tree/main), ref to it for installation. We recommend using VMware/Docker to run experiments, as these have been verified by us.
@@ -59,7 +59,7 @@ You can also use `run_multienv_uitars.py` for parallel execution. It should be n
 python run_multienv_uitars.py --path_to_vm "" --headless --observation_type screenshot --model ui-tars --noise_type pop_ups --num_envs 4 --result_dir ./results
 ```
 ### AgentHijack Agent
-Download the AgentHijack-Agent from [huggingface](), then deploy it to run evaluation experiment.
+Download the AgentHijack-Agent from [huggingface](https://huggingface.co/TMLR-Group-HF/AgentHijack-Agent), then deploy it to run evaluation experiment.
 ```bash
 nohup bash vllm_server/agenthijack-agent.sh > server.log &
 ```
@@ -73,13 +73,12 @@ To support flexible setups for different corruptions, we offer configurable para
 ## 📄 Citation
 If you find this environment useful, please consider citing our work:
 ```
-@misc{OSWorld,
-      title={OSWorld: Benchmarking Multimodal Agents for Open-Ended Tasks in Real Computer Environments}, 
-      author={Tianbao Xie and Danyang Zhang and Jixuan Chen and Xiaochuan Li and Siheng Zhao and Ruisheng Cao and Toh Jing Hua and Zhoujun Cheng and Dongchan Shin and Fangyu Lei and Yitao Liu and Yiheng Xu and Shuyan Zhou and Silvio Savarese and Caiming Xiong and Victor Zhong and Tao Yu},
-      year={2024},
-      eprint={2404.07972},
-      archivePrefix={arXiv},
-      primaryClass={cs.AI}
+@inproceedings{sun2026agenthijack,
+  title     = {AgentHijack: Benchmarking Computer Use Agent Robustness to Common Environment Corruptions},
+  author    = {Jingwei Sun and Jianing Zhu and Yuanyi Li and Tongliang Liu and Xia Hu and Bo Han},
+  booktitle = {Forty-third International Conference on Machine Learning},
+  year      = {2026},
+  url       = {https://openreview.net/forum?id=0H5Im3Xvuf}
 }
 ```
 
