@@ -12,11 +12,11 @@
 
 [![Paper](https://img.shields.io/badge/Paper-ICML_2026-red)](https://openreview.net/pdf?id=0H5Im3Xvuf)
 [![HuggingFace](https://img.shields.io/badge/🤗%20HuggingFace-Model-yellow)](https://huggingface.co/TMLR-Group-HF/AgentHijack-Agent)
-<img src="https://img.shields.io/badge/License-Apache_2.0-green.svg" alt="License">
-<img src="https://visitor-badge.laobi.icu/badge?page_id=tmlr-group.AgentHijack"/>
-<img src="https://img.shields.io/github/stars/tmlr-group/AgentHijack?style=flat-square&logo=github" alt="Stars">
-<img src="https://img.shields.io/github/issues/tmlr-group/AgentHijack?color=red" alt="Issues">
-<img src="https://img.shields.io/github/issues-closed/tmlr-group/AgentHijack?color=success" alt="Closed Issues">
+![License](https://img.shields.io/badge/License-Apache_2.0-green.svg)
+![Visitors](https://visitor-badge.laobi.icu/badge?page_id=tmlr-group.AgentHijack)
+![Stars](https://img.shields.io/github/stars/tmlr-group/AgentHijack?style=flat-square&logo=github)
+![Issues](https://img.shields.io/github/issues/tmlr-group/AgentHijack?color=red)
+![Closed Issues](https://img.shields.io/github/issues-closed/tmlr-group/AgentHijack?color=success)
 </div>
 
 
