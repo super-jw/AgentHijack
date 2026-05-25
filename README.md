@@ -21,6 +21,7 @@
 
 
 ## 📢 Updates
+- 2026-05-25: We release the code of [DA-GRPO](https://github.com/super-jw/DA-GRPO). Now you can use it to train your own agents!
 - 2026-05-17: We release the code of AgentHijack. Check it out!
 - 2026-05-01: AgentHijack is accepted to [ICML 2026](https://agenthijack.github.io/)!
 
