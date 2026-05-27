@@ -15,8 +15,7 @@ from perturb_utils import extract_coordinate_list, \
                           draw_edges_inside_bounding_box_pil, \
                           fill_bounding_box_with_text, \
                           is_valid_position, \
-                          generate_star_points, \
-                          generate_new_instruction
+                          generate_star_points
 
 def is_single_color_image(image, threshold=0.01):
     # Check if the input is bytes and convert to a PIL image if so
