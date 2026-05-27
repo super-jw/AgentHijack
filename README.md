@@ -55,7 +55,9 @@ After successful deployment, run the following command to obtain the result:
 ```bash
 python run_uitars.py --path_to_vm vmware_vm_data/Ubuntu0/Ubuntu0.vmx --headless --observation_type screenshot --model ui-tars --noise_type pop_ups --result_dir ./results
 ```
-You can also use `run_multienv_uitars.py` for parallel execution. It should be noted that, currently, corruption "network_error" can not run in docker environment. Therefore, we recommend use vmware for network_error evaluation.
+You can also use `run_multienv_uitars.py` for parallel execution.
+
+> **⚠️ Note:** The `network_error` corruption is **only supported on VMware**. Its implementation drops traffic on the VMware NIC `ens160` (see `agent_network_error` in `noise.py`), which does not exist in the Docker (QEMU) guest, so disconnection has no effect under Docker. **Please use VMware for `network_error` evaluation.**
 ```bash
 python run_multienv_uitars.py --path_to_vm "" --headless --observation_type screenshot --model ui-tars --noise_type pop_ups --num_envs 4 --result_dir ./results
 ```
