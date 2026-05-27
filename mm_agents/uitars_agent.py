@@ -567,6 +567,7 @@ class UITARSAgent:
         action_space="pyautogui",
         observation_type="screenshot",
         # observation_type can be in ["screenshot", "a11y_tree", "screenshot_a11y_tree", "som"]
+        base_url="http://127.0.0.1:9000/v1",
         max_trajectory_length=50,
         a11y_tree_max_tokens=10000,
         model_type="qwen25vl",
@@ -597,7 +598,7 @@ class UITARSAgent:
         self.model_type = model_type
         self.runtime_conf = runtime_conf
         self.vlm = OpenAI(
-            base_url="http://127.0.0.1:9000/v1",
+            base_url=base_url,
             api_key="empty",
         ) # should replace with your UI-TARS server api
         self.temperature = self.runtime_conf["temperature"]
